@@ -1,5 +1,8 @@
 import type { DateRange, PeriodId } from "@/lib/data/types";
 
+/** Reloj estable del prototipo: mantiene el prerender determinista. */
+export const DEMO_AS_OF = new Date("2026-11-06T12:00:00-03:00");
+
 /** Normaliza el reloj a mediodía local para evitar saltos por horario de verano. */
 export function demoToday(asOf: Date = new Date()) {
   return new Date(

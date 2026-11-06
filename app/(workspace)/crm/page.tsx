@@ -1,6 +1,9 @@
-import { upcomingPage } from "@/components/workspace/upcoming-page";
+import type { Metadata } from "next";
 
-const { metadata, Page } = upcomingPage("crm");
+import { CrmView } from "@/components/data/crm-view";
 
-export { metadata };
-export default Page;
+export const metadata: Metadata = { title: "CRM · Tracer" };
+
+export default function CrmPage() {
+  return <CrmView />;
+}

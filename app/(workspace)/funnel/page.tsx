@@ -1,6 +1,9 @@
-import { upcomingPage } from "@/components/workspace/upcoming-page";
+import type { Metadata } from "next";
 
-const { metadata, Page } = upcomingPage("funnel");
+import { FunnelView } from "@/components/data/funnel-view";
 
-export { metadata };
-export default Page;
+export const metadata: Metadata = { title: "Funnel · Tracer" };
+
+export default function FunnelPage() {
+  return <FunnelView />;
+}

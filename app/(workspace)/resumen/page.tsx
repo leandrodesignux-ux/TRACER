@@ -1,6 +1,9 @@
-import { upcomingPage } from "@/components/workspace/upcoming-page";
+import type { Metadata } from "next";
 
-const { metadata, Page } = upcomingPage("resumen");
+import { SummaryView } from "@/components/data/summary-view";
 
-export { metadata };
-export default Page;
+export const metadata: Metadata = { title: "Resumen · Tracer" };
+
+export default function SummaryPage() {
+  return <SummaryView />;
+}
