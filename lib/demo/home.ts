@@ -156,7 +156,7 @@ export const SUGGESTIONS = [
 
 export type FindingCategory = "alertas" | "experimentos" | "fuentes";
 export type FindingIcon = "drop" | "deploy" | "experiment" | "sync";
-export type FindingTone = "destructive" | "warning" | "primary" | "muted";
+export type FindingTone = "danger" | "warning" | "info" | "success";
 
 export type Finding = {
   id: string;
@@ -187,7 +187,7 @@ export const FINDINGS: Finding[] = [
     id: "demos-drop",
     category: "alertas",
     icon: "drop",
-    tone: "destructive",
+    tone: "danger",
     title: `Demos agendadas ${formatDelta(DEMO_DROP)}`,
     detail: "Formulario completado → demo agendada",
     minutesAgo: 2 * HOUR,
@@ -209,7 +209,7 @@ export const FINDINGS: Finding[] = [
     id: "calendar-deploy",
     category: "alertas",
     icon: "deploy",
-    tone: "muted",
+    tone: "info",
     title: "Calendario v2.3 desplegado",
     detail: "Widget de agenda de demos",
     minutesAgo: 9 * DAY,
@@ -220,7 +220,7 @@ export const FINDINGS: Finding[] = [
     id: "experiment-ready",
     category: "experimentos",
     icon: "experiment",
-    tone: "primary",
+    tone: "success",
     title: "Experimento listo para leer",
     detail: "Formulario en un solo paso",
     minutesAgo: 1 * DAY + 3 * HOUR,
@@ -231,7 +231,7 @@ export const FINDINGS: Finding[] = [
     id: "clarity-sync",
     category: "fuentes",
     icon: "sync",
-    tone: "muted",
+    tone: "info",
     title: "Clarity sincronizado",
     detail: "Sesiones de esta semana",
     minutesAgo: 15,

@@ -1,24 +1,10 @@
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
-export const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Una sola familia para todo: texto en 400/500 y énfasis en 600.
+export const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
-export const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// Solo para títulos y el saludo (peso 300, tracking negativo).
-export const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["300", "400", "500"],
-});
-
-export const fontVariables = [
-  geistSans.variable,
-  geistMono.variable,
-  spaceGrotesk.variable,
-].join(" ");
+export const fontVariables = jakarta.variable;

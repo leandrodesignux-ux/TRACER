@@ -128,7 +128,7 @@ export function AppSidebar() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar"
                 aria-label="Buscar en el menú"
-                className="h-8 rounded-lg border-panel-border bg-panel pl-8 text-xs"
+                className="h-8 rounded-lg border-panel-outline bg-card/70 pl-8 text-xs"
               />
             </div>
             <Button

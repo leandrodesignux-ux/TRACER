@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 
 import { Composer } from "@/components/workspace/composer";
 import { Panel } from "@/components/workspace/panel";
-import { TracerMark } from "@/components/workspace/tracer-logo";
+import { TracerBadge, TracerMark } from "@/components/workspace/tracer-logo";
 import { ViewHeader } from "@/components/workspace/view-header";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { ASSISTANT, SUGGESTIONS } from "@/lib/demo/home";
@@ -23,7 +23,7 @@ export function AssistantView() {
     <>
       <ViewHeader title={ASSISTANT.title} status={ASSISTANT.status} actions />
 
-      <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <Panel className="flex min-h-0 flex-1 flex-col overflow-hidden glow-bottom">
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-4 sm:px-6">
           {empty ? (
             <motion.div
@@ -32,8 +32,8 @@ export function AssistantView() {
               transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
               className="m-auto flex flex-col items-center gap-3 py-10 text-center"
             >
-              <TracerMark className="size-6 text-primary" />
-              <h2 className="max-w-[14ch] font-heading text-3xl leading-tight font-light tracking-tighter text-balance sm:text-4xl">
+              <TracerBadge />
+              <h2 className="max-w-[14ch] font-heading text-2xl leading-tight font-medium tracking-heading text-balance sm:text-3xl">
                 {ASSISTANT.emptyTitle}
               </h2>
             </motion.div>
@@ -76,7 +76,7 @@ export function AssistantView() {
                   <button
                     type="button"
                     onClick={() => fillComposer(s.prompt)}
-                    className="flex h-8 items-center gap-2 rounded-full border border-panel-border bg-card/70 px-3 text-xs whitespace-nowrap shadow-xs transition-colors outline-none hover:bg-card focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="flex h-8 items-center gap-2 rounded-full border border-panel-outline bg-card/80 px-3 text-xs whitespace-nowrap shadow-xs transition-colors outline-none hover:bg-card focus-visible:ring-3 focus-visible:ring-ring/50"
                   >
                     <TracerMark className="size-3.5 text-primary" />
                     {s.label}
