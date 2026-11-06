@@ -89,12 +89,12 @@ export const UPCOMING_VIEWS: Record<
   sesiones: {
     title: "Sesiones",
     description: "Grabaciones de Clarity que respaldan cada hipótesis.",
-    phase: "Fase 3",
+    phase: "Fase 2",
   },
   crm: {
     title: "CRM",
     description: "Los leads que se quedaron a mitad de camino.",
-    phase: "Fase 3",
+    phase: "Fase 2",
   },
   analisis: {
     title: "Análisis",
