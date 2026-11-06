@@ -1,6 +1,7 @@
 import { createChangelog } from "@/lib/data/changelog";
 import { createCrmLeads } from "@/lib/data/crm-leads";
 import {
+  DEMO_AS_OF,
   formatDateRange,
   periodDays,
   rollingRange,
@@ -72,7 +73,7 @@ export function getFunnel(
   filters: CommonFilters & { segment?: DeviceId | "all" } = {},
 ) {
   const period = filters.period ?? "7d";
-  const asOf = filters.asOf ?? new Date();
+  const asOf = filters.asOf ?? DEMO_AS_OF;
   const dataset = createFunnelData(asOf);
   const historySize = period === "7d" ? 2 : period === "28d" ? 4 : 8;
   const history = dataset.weeks.slice(-historySize);
@@ -150,7 +151,7 @@ export function getSegments(
     segment?: string;
   } = {},
 ) {
-  const asOf = filters.asOf ?? new Date();
+  const asOf = filters.asOf ?? DEMO_AS_OF;
   const period = filters.period ?? "7d";
   const dataset = createSegmentData(asOf);
   const dimension = filters.dimension ?? "device";
@@ -207,7 +208,7 @@ export function getSessions(
     problematicOnly?: boolean;
   } = {},
 ) {
-  const asOf = filters.asOf ?? new Date();
+  const asOf = filters.asOf ?? DEMO_AS_OF;
   const period = filters.period ?? "7d";
   let sessions = createSessionsData(asOf);
   if (filters.device && filters.device !== "all") {
@@ -239,7 +240,7 @@ export function getCrmLeads(
     goodFitWithoutDemo?: boolean;
   } = {},
 ) {
-  const asOf = filters.asOf ?? new Date();
+  const asOf = filters.asOf ?? DEMO_AS_OF;
   const period = filters.period ?? "28d";
   const range = rollingRange(asOf, periodDays(period));
   let leads = createCrmLeads(asOf).filter(
@@ -274,7 +275,7 @@ export function getCrmLeads(
 }
 
 export function getChangelog(filters: CommonFilters = {}) {
-  const asOf = filters.asOf ?? new Date();
+  const asOf = filters.asOf ?? DEMO_AS_OF;
   const period = filters.period ?? "28d";
   const range = rollingRange(asOf, periodDays(period));
   const entries = createChangelog(asOf).filter(
@@ -295,7 +296,7 @@ export function getChangelog(filters: CommonFilters = {}) {
 export function getExperiments(
   filters: CommonFilters & { status?: ExperimentStatus } = {},
 ) {
-  const asOf = filters.asOf ?? new Date();
+  const asOf = filters.asOf ?? DEMO_AS_OF;
   const range = rollingRange(asOf, periodDays(filters.period ?? "90d"));
   const experiments = createExperiments(asOf).filter(
     (experiment) =>
@@ -324,7 +325,7 @@ export function estimateDuration({
   baselineRate,
   minimumEffect,
   weeklyTraffic,
-  asOf = new Date(),
+  asOf = DEMO_AS_OF,
 }: {
   baselineRate: number;
   minimumEffect: number;

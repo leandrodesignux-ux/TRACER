@@ -1,6 +1,9 @@
-import { upcomingPage } from "@/components/workspace/upcoming-page";
+import type { Metadata } from "next";
 
-const { metadata, Page } = upcomingPage("sesiones");
+import { SessionsView } from "@/components/data/sessions-view";
 
-export { metadata };
-export default Page;
+export const metadata: Metadata = { title: "Sesiones · Tracer" };
+
+export default function SessionsPage() {
+  return <SessionsView />;
+}
