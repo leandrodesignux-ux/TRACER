@@ -43,6 +43,13 @@
   --color-source-ga4: var(--source-ga4);
   --color-source-clarity: var(--source-clarity);
   --color-source-crm: var(--source-crm);
+  /* Material del workspace */
+  --color-shell-from: var(--shell-from);
+  --color-shell-to: var(--shell-to);
+  --color-panel: var(--panel);
+  --color-panel-border: var(--panel-border);
+  --color-nav-active: var(--nav-active);
+  --color-nav-active-foreground: var(--nav-active-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -53,7 +60,7 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.75rem;
   --background: #FDFCFA;
   --foreground: #181512;
   --card: #FFFFFF;
@@ -89,6 +96,13 @@
   --source-ga4: #7A5A1F;         /* latón legible como texto */
   --source-clarity: #65293B;
   --source-crm: #415445;
+  /* Material del workspace */
+  --shell-from: #FAF8F3;         /* canvas */
+  --shell-to: #DDE6DA;           /* salvia muy suave */
+  --panel: rgb(255 255 255 / 0.7);
+  --panel-border: rgb(255 255 255 / 0.9);
+  --nav-active: #181512;
+  --nav-active-foreground: #FDFCFA;
 }
 
 .dark {
@@ -126,6 +140,12 @@
   --source-ga4: #D9B26A;
   --source-clarity: #C98A9A;
   --source-crm: #9DB89F;
+  --shell-from: #161A15;
+  --shell-to: #1F2A21;
+  --panel: rgb(27 31 26 / 0.7);  /* card al 70 % */
+  --panel-border: rgb(241 237 228 / 0.07);
+  --nav-active: #F1EDE4;
+  --nav-active-foreground: #131612;
 }
 
 @layer base {
