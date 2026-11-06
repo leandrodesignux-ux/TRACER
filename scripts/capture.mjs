@@ -87,7 +87,30 @@ try {
         await page.screenshot({
           path: path.join(outputDir, `${routeName}-${viewportName}-${themeName}.png`),
           fullPage: true,
+          animations: "disabled",
         });
+
+        if (routeName === "asistente") {
+          if (viewportName === "mobile") {
+            await page.getByRole("button", { name: /Hallazgos/ }).click();
+          }
+          const sourceButton = page.getByRole("button", {
+            name: "Ver fuente CRM",
+          });
+          if ((await sourceButton.count()) > 0) {
+            await sourceButton.click();
+            await page.getByRole("dialog").last().waitFor();
+            await page.screenshot({
+              path: path.join(
+                outputDir,
+                `${routeName}-fuente-${viewportName}-${themeName}.png`,
+              ),
+              fullPage: true,
+              animations: "disabled",
+            });
+            await page.keyboard.press("Escape");
+          }
+        }
       }
 
       await context.close();
