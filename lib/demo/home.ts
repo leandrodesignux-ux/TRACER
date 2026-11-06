@@ -135,8 +135,6 @@ export const ASSISTANT = {
   status: "Conectado a GA4, Clarity y CRM",
   emptyTitle: "¿Qué quieres analizar hoy?",
   placeholder: "Pregunta algo sobre tu funnel…",
-  thinking: "Analizando…",
-  thinkingNote: "Las respuestas llegan en la Fase 3.",
 };
 
 export const SUGGESTIONS = [

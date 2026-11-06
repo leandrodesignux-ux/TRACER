@@ -95,7 +95,11 @@ function AssistantActions() {
       ``,
       `${COMPANY.name} · ${COMPANY.dataNote}`,
       ``,
-      ...messages.map((m) => `**Tú:** ${m.text}\n`),
+      ...messages.map((message) =>
+        message.role === "user"
+          ? `**Tú:** ${message.text}\n`
+          : `**Tracer:** ${message.response.text}\n`,
+      ),
     ];
     try {
       const blob = new Blob([lines.join("\n")], { type: "text/markdown" });

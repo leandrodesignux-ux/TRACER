@@ -19,9 +19,13 @@ import {
   type PeriodId,
   type SourceId,
 } from "@/lib/demo/home";
+import { resolveDemoResponse } from "@/lib/demo/responses";
+import {
+  threadTitle,
+  type AnalysisThread,
+  type ConversationMessage,
+} from "@/lib/demo/threads";
 import { clearStored, useStored } from "@/lib/storage";
-
-export type Message = { id: string; role: "user"; text: string };
 
 type WorkspaceContextValue = {
   draft: string;
@@ -29,8 +33,15 @@ type WorkspaceContextValue = {
   composerRef: RefObject<HTMLTextAreaElement | null>;
   /** Deja una pregunta en el composer y le pone el foco. */
   fillComposer: (text: string) => void;
-  messages: Message[];
+  messages: ConversationMessage[];
+  threads: AnalysisThread[];
+  currentThreadId: string | null;
   sendMessage: () => void;
+  setAssistantStatus: (
+    messageId: string,
+    status: "complete" | "stopped",
+  ) => void;
+  openThread: (threadId: string) => void;
   sources: SourceId[];
   setSources: (value: SourceId[]) => void;
   period: PeriodId;
@@ -46,6 +57,7 @@ type WorkspaceContextValue = {
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 const EMPTY_IDS: string[] = [];
+const EMPTY_THREADS: AnalysisThread[] = [];
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -53,11 +65,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
   const [sources, setSources] = useState<SourceId[]>(SOURCES.map((s) => s.id));
   const [period, setPeriod] = useState<PeriodId>("7d");
   const [findingsOpen, setFindingsOpen] = useState(false);
   const [readIds, setReadIds] = useStored<string[]>("read-findings", EMPTY_IDS);
+  const [threads, setThreads] = useStored<AnalysisThread[]>(
+    "analysis-threads",
+    EMPTY_THREADS,
+  );
+  const [currentThreadId, setCurrentThreadId] = useStored<string | null>(
+    "current-thread",
+    null,
+  );
+  const currentThread = threads.find((thread) => thread.id === currentThreadId);
+  const messages = useMemo(
+    () => currentThread?.messages ?? [],
+    [currentThread],
+  );
 
   const focusComposer = useCallback(() => {
     // Espera al siguiente frame: el composer puede estar montándose o detrás de un Sheet.
@@ -82,12 +106,81 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const sendMessage = useCallback(() => {
     const text = draft.trim();
     if (!text) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: `m-${prev.length + 1}`, role: "user", text },
+    const now = new Date().toISOString();
+    const nonce = Date.now();
+    const response = resolveDemoResponse({
+      prompt: text,
+      period,
+      enabledSources: sources,
+    });
+    const nextMessages: ConversationMessage[] = [
+      ...(currentThread?.messages ?? []),
+      { id: `u-${nonce}`, role: "user", text },
+      {
+        id: `a-${nonce}`,
+        role: "assistant",
+        response,
+        status: "running",
+      },
+    ];
+    const thread: AnalysisThread = currentThread
+      ? {
+          ...currentThread,
+          updatedAt: now,
+          sources: [...new Set([...currentThread.sources, ...response.sourceIds])],
+          status: "en_curso",
+          messages: nextMessages,
+        }
+      : {
+          id: `thread-${nonce}`,
+          title: threadTitle(text),
+          createdAt: now,
+          updatedAt: now,
+          sources: response.sourceIds,
+          status: "en_curso",
+          messages: nextMessages,
+        };
+    setThreads([
+      thread,
+      ...threads.filter((item) => item.id !== thread.id),
     ]);
+    setCurrentThreadId(thread.id);
     setDraft("");
-  }, [draft]);
+  }, [currentThread, draft, period, setCurrentThreadId, setThreads, sources, threads]);
+
+  const setAssistantStatus = useCallback(
+    (messageId: string, status: "complete" | "stopped") => {
+      if (!currentThread) return;
+      const messages = currentThread.messages.map((message) =>
+        message.id === messageId && message.role === "assistant"
+          ? { ...message, status }
+          : message,
+      );
+      const hasRunning = messages.some(
+        (message) => message.role === "assistant" && message.status === "running",
+      );
+      setThreads(
+        threads.map((thread) =>
+          thread.id === currentThread.id
+            ? {
+                ...thread,
+                messages,
+                status: hasRunning ? "en_curso" : "completo",
+              }
+            : thread,
+        ),
+      );
+    },
+    [currentThread, setThreads, threads],
+  );
+
+  const openThread = useCallback(
+    (threadId: string) => {
+      setCurrentThreadId(threadId);
+      if (pathname !== "/") router.push("/");
+    },
+    [pathname, router, setCurrentThreadId],
+  );
 
   const markRead = useCallback(
     (id: string) => {
@@ -103,19 +196,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   );
 
   const newAnalysis = useCallback(() => {
-    setMessages([]);
+    setCurrentThreadId(null);
     setDraft("");
     if (pathname !== "/") router.push("/");
     focusComposer();
-  }, [pathname, router, focusComposer]);
+  }, [pathname, router, focusComposer, setCurrentThreadId]);
 
   const resetDemo = useCallback(() => {
     clearStored();
-    setMessages([]);
+    setThreads([]);
+    setCurrentThreadId(null);
     setDraft("");
     setSources(SOURCES.map((s) => s.id));
     setPeriod("7d");
-  }, []);
+  }, [setCurrentThreadId, setThreads]);
 
   const value = useMemo<WorkspaceContextValue>(
     () => ({
@@ -124,7 +218,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       composerRef,
       fillComposer,
       messages,
+      threads,
+      currentThreadId,
       sendMessage,
+      setAssistantStatus,
+      openThread,
       sources,
       setSources,
       period,
@@ -140,7 +238,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       draft,
       fillComposer,
       messages,
+      threads,
+      currentThreadId,
       sendMessage,
+      setAssistantStatus,
+      openThread,
       sources,
       period,
       isUnread,
