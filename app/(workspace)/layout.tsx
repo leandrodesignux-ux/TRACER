@@ -17,7 +17,7 @@ export default function WorkspaceLayout({ children }: LayoutProps<"/">) {
       >
         <TopBar />
 
-        <div className="relative mx-2 mb-[max(0.5rem,env(safe-area-inset-bottom))] flex min-h-0 flex-1 overflow-hidden rounded-3xl border border-panel-border bg-linear-to-br from-shell-from to-shell-to shadow-xs max-lg:[&>[data-slot=sidebar]]:hidden lg:mx-3 lg:mb-3">
+        <div className="relative mx-2 mb-[max(0.5rem,env(safe-area-inset-bottom))] flex min-h-0 flex-1 overflow-hidden rounded-3xl border border-panel-outline bg-linear-to-tr from-shell-from to-shell-to max-lg:[&>[data-slot=sidebar]]:hidden lg:mx-3 lg:mb-3">
           <AppSidebar />
 
           <main className="flex min-w-0 flex-1 flex-col p-2 sm:p-3 lg:pl-1">

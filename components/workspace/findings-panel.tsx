@@ -32,10 +32,10 @@ const ICONS: Record<FindingIcon, LucideIcon> = {
 };
 
 const TONES: Record<FindingTone, string> = {
-  destructive: "bg-destructive/10 text-destructive",
-  warning: "bg-chart-2/15 text-source-ga4",
-  primary: "bg-primary/10 text-primary",
-  muted: "bg-muted text-muted-foreground",
+  danger: "bg-tone-danger-soft text-tone-danger",
+  warning: "bg-tone-warning-soft text-tone-warning",
+  info: "bg-tone-info-soft text-tone-info",
+  success: "bg-tone-success-soft text-tone-success",
 };
 
 type TabId = "todo" | FindingCategory;
@@ -52,7 +52,7 @@ export function FindingsPanel({ className }: { className?: string }) {
     >
       <h2
         id="hallazgos-titulo"
-        className="px-4 pt-4 font-heading text-base font-light tracking-tight"
+        className="px-4 pt-4 font-heading text-base font-medium tracking-heading"
       >
         Hallazgos
       </h2>
@@ -62,13 +62,13 @@ export function FindingsPanel({ className }: { className?: string }) {
         onValueChange={(value) => setTab(value as TabId)}
         className="px-3 pt-3"
       >
-        <TabsList className="h-8 w-full rounded-full border border-panel-border bg-panel p-0.5">
+        <TabsList className="h-8 w-full rounded-full border border-panel-outline bg-card/70 p-0.5">
           {FINDING_TABS.map((t) => (
             <TabsTrigger
               key={t.id}
               value={t.id}
               // El hover base de Tabs gana en especificidad: el texto activo va con !.
-              className="rounded-full text-[11px] font-normal data-active:bg-nav-active data-active:text-nav-active-foreground! data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-nav-active"
+              className="rounded-full text-[11px] font-normal data-active:bg-primary data-active:text-primary-foreground! data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-primary"
             >
               {t.label}
             </TabsTrigger>
@@ -121,7 +121,7 @@ function FindingItem({ finding }: { finding: Finding }) {
         markRead(finding.id);
         fillComposer(finding.prompt);
       }}
-      className="group flex w-full items-start gap-3 rounded-xl border border-panel-border bg-card/70 p-3 text-left shadow-xs transition-colors outline-none hover:bg-card focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="group flex w-full items-start gap-3 rounded-xl border border-panel-outline bg-card/80 p-3 text-left shadow-xs transition-colors outline-none hover:bg-card focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <span
         className={cn(

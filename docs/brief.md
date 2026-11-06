@@ -74,7 +74,7 @@ Todo corre en el cliente: no hay rutas de API, claves ni variables de entorno. L
 | --- | --- | --- |
 | Framework | Next.js 16 App Router, React 19, TypeScript | Misma versión mayor que el portfolio (16.x) para no aprender dos APIs |
 | UI | shadcn/ui, base Radix, íconos lucide | El portfolio ya usa lucide-react |
-| Tema | next-themes | Claro, oscuro y sistema (por defecto) |
+| Tema | next-themes | Claro por defecto; selector con claro, oscuro y sistema |
 | Movimiento | motion (sucesor de framer-motion), desde la Fase 1 | Transiciones; respeta `prefers-reduced-motion` |
 | Gráficos | Componente Chart de shadcn (Recharts) | Funnel, tendencias y mini gráficos del historial |
 | Asistente | Motor de guion en el cliente (`lib/demo/`) sobre herramientas locales (`lib/ai/tools.ts`) | Respuestas simuladas; solo cita cifras que devuelven las herramientas |
@@ -132,99 +132,138 @@ tracer/
   CLAUDE.md                         reglas del repo para Claude Code
 ```
 
-## Tema shadcn con tu sistema visual
+## Tema shadcn: sistema visual de Tracer
 
-El tema claro sale directo de los tokens de tu `globals.css`: canvas, bosque, latón y vino. El oscuro es una propuesta nueva, porque el portfolio hoy es solo claro. Ya está aplicado en `app/globals.css`.
+Tracer tiene una paleta propia, fría y azulada, separada del sistema del portfolio (bosque, latón y vino). Sale de la referencia de `docs/referencias/workspace.png`: paneles traslúcidos sobre un degradado suave, bordes finos y muy redondeados, sombras mínimas y un brillo azul en el panel central. El tema claro es el de entrada (`defaultTheme="light"`); el selector sigue ofreciendo claro, oscuro y sistema. Los valores viven en `app/globals.css`:
 
 ```css
 :root {
-  --radius: 0.5rem;
-  --background: #FDFCFA;
-  --foreground: #181512;
+  --radius: 0.75rem;
+  --background: #F4F6FA;
+  --foreground: #1A1F2C;
   --card: #FFFFFF;
-  --card-foreground: #181512;
+  --card-foreground: #1A1F2C;
   --popover: #FFFFFF;
-  --popover-foreground: #181512;
-  --primary: #415445;            /* bosque */
-  --primary-foreground: #FDFCFA;
-  --secondary: #F5F1E8;
-  --secondary-foreground: #181512;
-  --muted: #F5F1E8;
-  --muted-foreground: #7A746D;
-  --accent: #ECE5D8;
-  --accent-foreground: #181512;
-  --destructive: #B93832;
-  --border: #E5DDD3;
-  --input: #D8D0C6;
-  --ring: #415445;
-  --chart-1: #415445;            /* bosque */
-  --chart-2: #B38A3F;            /* latón */
-  --chart-3: #65293B;            /* vino */
-  --chart-4: #9A7F4C;
-  --chart-5: #A7A098;
-  --sidebar: #FDFCFA;
-  --sidebar-foreground: #45413D;
-  --sidebar-primary: #415445;
-  --sidebar-primary-foreground: #FDFCFA;
-  --sidebar-accent: #F5F1E8;
-  --sidebar-accent-foreground: #181512;
-  --sidebar-border: #E5DDD3;
-  --sidebar-ring: #415445;
-  /* Propios de Tracer: color por fuente de datos */
-  --source-ga4: #7A5A1F;         /* latón legible como texto */
-  --source-clarity: #65293B;
-  --source-crm: #415445;
+  --popover-foreground: #1A1F2C;
+  --primary: #4D74E6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EDF1F8;
+  --secondary-foreground: #1A1F2C;
+  --muted: #EDF1F8;
+  --muted-foreground: #6B7385;
+  --accent: #E6ECF7;
+  --accent-foreground: #1A1F2C;
+  --destructive: #D64545;
+  --border: #DDE3EE;
+  --input: #D3DAE7;
+  --ring: #4D74E6;
+  --chart-1: #4D74E6;            /* primary */
+  --chart-2: #7B95F0;
+  --chart-3: #A99BEF;            /* lavanda */
+  --chart-4: #C6D3F7;
+  --chart-5: #94A0B8;
+  --sidebar: #F4F6FA;            /* sólido para el Sheet; en escritorio va sobre el shell */
+  --sidebar-foreground: #3A4152;
+  --sidebar-primary: #4D74E6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E6ECF7;
+  --sidebar-accent-foreground: #1A1F2C;
+  --sidebar-border: #DDE3EE;
+  --sidebar-ring: #4D74E6;
+  /* Fuentes de datos, legibles como texto */
+  --source-ga4: #9A5B00;         /* ámbar */
+  --source-clarity: #7A4FD6;     /* violeta */
+  --source-crm: #1A7A50;         /* verde */
+  /* Tonos de estado */
+  --tone-danger: #D64545;
+  --tone-danger-soft: #FDECEC;
+  --tone-warning: #C27A0E;
+  --tone-warning-soft: #FDF3E1;
+  --tone-info: #4D74E6;
+  --tone-info-soft: #E8EEFC;
+  --tone-success: #1F9D6B;
+  --tone-success-soft: #E3F6EE;
+  /* Material del workspace */
+  --shell-from: #DCE4F3;
+  --shell-to: #EEF2F9;
+  --panel: rgb(255 255 255 / 0.72);
+  --panel-border: rgb(255 255 255 / 0.9);   /* borde interior */
+  --panel-outline: #DDE3EE;                 /* borde exterior */
+  --nav-active: #1E2330;
+  --nav-active-foreground: #FFFFFF;
+  --glow: rgb(77 116 230 / 0.18);
+  --brand-from: #4D74E6;
+  --brand-to: #A99BEF;
 }
 
 .dark {
-  --background: #131612;
-  --foreground: #F1EDE4;
-  --card: #1B1F1A;
-  --card-foreground: #F1EDE4;
-  --popover: #1B1F1A;
-  --popover-foreground: #F1EDE4;
-  --primary: #9DB89F;
-  --primary-foreground: #131612;
-  --secondary: #252A23;
-  --secondary-foreground: #F1EDE4;
-  --muted: #1B1F1A;
-  --muted-foreground: #9C968C;
-  --accent: #252A23;
-  --accent-foreground: #F1EDE4;
-  --destructive: #E0645C;
-  --border: #2C3229;
-  --input: #3A4136;
-  --ring: #BFD3BE;
-  --chart-1: #9DB89F;
-  --chart-2: #D2A75A;
-  --chart-3: #C98A9A;
-  --chart-4: #B79E6E;
-  --chart-5: #6E695F;
-  --sidebar: #131612;
-  --sidebar-foreground: #CFC9BE;
-  --sidebar-primary: #9DB89F;
-  --sidebar-primary-foreground: #131612;
-  --sidebar-accent: #1B1F1A;
-  --sidebar-accent-foreground: #F1EDE4;
-  --sidebar-border: #2C3229;
-  --sidebar-ring: #BFD3BE;
-  --source-ga4: #D9B26A;
-  --source-clarity: #C98A9A;
-  --source-crm: #9DB89F;
-}
-
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-heading: var(--font-space-grotesk);
-  --color-source-ga4: var(--source-ga4);
-  --color-source-clarity: var(--source-clarity);
-  --color-source-crm: var(--source-crm);
+  --background: #0D111C;
+  --foreground: #E7EBF5;
+  --card: #161C2B;
+  --card-foreground: #E7EBF5;
+  --popover: #161C2B;
+  --popover-foreground: #E7EBF5;
+  --primary: #7C9BFF;
+  --primary-foreground: #0D111C;
+  --secondary: #1C2335;
+  --secondary-foreground: #E7EBF5;
+  --muted: #1C2335;
+  --muted-foreground: #8A93A8;
+  --accent: #1C2335;
+  --accent-foreground: #E7EBF5;
+  --destructive: #F06A6A;
+  --border: #263049;
+  --input: #263049;
+  --ring: #7C9BFF;
+  --chart-1: #7C9BFF;            /* primary */
+  --chart-2: #A3B6FF;
+  --chart-3: #C2B5FF;
+  --chart-4: #5468B8;
+  --chart-5: #4A5470;
+  --sidebar: #0D111C;
+  --sidebar-foreground: #C3CADB;
+  --sidebar-primary: #7C9BFF;
+  --sidebar-primary-foreground: #0D111C;
+  --sidebar-accent: #1C2335;
+  --sidebar-accent-foreground: #E7EBF5;
+  --sidebar-border: #263049;
+  --sidebar-ring: #7C9BFF;
+  --source-ga4: #F5B754;
+  --source-clarity: #B79CFF;
+  --source-crm: #4CD4A0;
+  --tone-danger: #FF8A8A;
+  --tone-danger-soft: rgb(255 138 138 / 0.14);
+  --tone-warning: #F5B754;
+  --tone-warning-soft: rgb(245 183 84 / 0.14);
+  --tone-info: #7C9BFF;
+  --tone-info-soft: rgb(124 155 255 / 0.16);
+  --tone-success: #4CD4A0;
+  --tone-success-soft: rgb(76 212 160 / 0.14);
+  --shell-from: #141A2A;
+  --shell-to: #1A2236;
+  --panel: rgb(255 255 255 / 0.04);
+  --panel-border: rgb(255 255 255 / 0.06);
+  --panel-outline: #263049;
+  --nav-active: #E7EBF5;
+  --nav-active-foreground: #0D111C;
+  --glow: rgb(124 155 255 / 0.22);
+  --brand-from: #7C9BFF;
+  --brand-to: #B79CFF;
 }
 ```
 
-**Tipografía.** Geist para todo el texto y Space Grotesk solo en títulos y en el saludo, con peso 300 y tracking negativo, igual que en el portfolio. Las dos se cargan con `next/font/google` en `lib/fonts.ts`.
+**Material.** Dos utilidades en `globals.css` arman el material sin valores sueltos en los componentes:
 
-**Reglas que Claude Code tiene que respetar.** Colores siempre por token semántico (`bg-primary`, `text-muted-foreground`), nunca valores sueltos ni `dark:` manuales. El latón `#B38A3F` no se usa como texto sobre fondo claro: para eso está `--source-ga4`. Las tarjetas de trabajo del inicio pueden usar vino, crema y bosque como fondo, como las tarjetas de servicio del portfolio; es el único lugar con color de fondo fuerte.
+- `panel-surface`: fondo `--panel`, borde exterior `--panel-outline` y filo interior `--panel-border` como sombra inset, más una sombra mínima. La usa el componente `Panel`.
+- `glow-bottom`: degradado radial con `--glow` que sube desde abajo del panel central, detrás de los chips y el composer.
+
+El shell es un degradado de `--shell-from` a `--shell-to`. La marca es el glifo de líneas que convergen sobre un cuadrado con degradado de `--brand-from` (primary) a `--brand-to` (lavanda).
+
+**Tonos de estado.** `--tone-danger`, `--tone-warning`, `--tone-info` y `--tone-success`, cada uno con su `-soft` para el fondo del ícono. Los hallazgos usan danger para la caída de demos, warning para Android, info para el calendario y Clarity, y success para el experimento listo.
+
+**Tipografía.** Plus Jakarta Sans para todo, con `next/font/google` en `lib/fonts.ts` y pesos 400, 500 y 600. Los títulos van en 400 o 500 con `tracking-heading` (−0.02em); no se usan pesos 300.
+
+**Reglas que Claude Code tiene que respetar.** Colores siempre por token semántico (`bg-primary`, `text-muted-foreground`, `text-tone-danger`), nunca valores sueltos ni `dark:` manuales. Las cifras por fuente usan `text-source-ga4`, `text-source-clarity` y `text-source-crm`, legibles como texto en los dos modos. En oscuro, el texto sobre `primary` es oscuro (`#0D111C`), porque el blanco no llega al contraste mínimo.
 
 ## Datos demo
 
@@ -270,7 +309,7 @@ Son seis fases con una rama y un PR cada una; cada fase termina con algo que se 
 **Fase 0. Setup** (hecha)
 
 ```text
-Crea el proyecto Tracer: Next.js 16 App Router con TypeScript y Tailwind v4, y corre shadcn init con base Radix e íconos lucide. Reemplaza las variables de tema del globals.css con las de la sección “Tema shadcn” de docs/brief.md. Carga Geist y Space Grotesk con next/font. Agrega next-themes con selector claro, oscuro y sistema. Agrega CLAUDE.md y un README corto. Entrega: página con un Button y un Card que usen el tema, en claro y oscuro. Al cerrar, con lint y build en verde, se crea el repo en GitHub y se conecta a Vercel.
+Crea el proyecto Tracer: Next.js 16 App Router con TypeScript y Tailwind v4, y corre shadcn init con base Radix e íconos lucide. Reemplaza las variables de tema del globals.css con las de la sección “Tema shadcn” de docs/brief.md. Carga las fuentes con next/font. Agrega next-themes con selector claro, oscuro y sistema. Agrega CLAUDE.md y un README corto. Entrega: página con un Button y un Card que usen el tema, en claro y oscuro. Al cerrar, con lint y build en verde, se crea el repo en GitHub y se conecta a Vercel.
 ```
 
 **Fase 1. Estructura e inicio**
@@ -315,7 +354,7 @@ Tracer entra como un caso nuevo con la etiqueta honesta que ya usas en otros pro
 2. La decisión de diseño: ninguna cifra sin fuente, llevada a la arquitectura con herramientas que devuelven su fuente.
 3. Del layout de referencia a un producto de growth: la tabla de esta doc, en versión visual.
 4. El momento clave: el asistente distingue un bug de algo que vale la pena testear.
-5. Cómo se construyó: Claude Code, shadcn y el sistema visual compartido con el portfolio.
+5. Cómo se construyó: Claude Code, shadcn y un sistema visual propio, frío, tomado de la referencia.
 6. Qué aprendí y qué validaría con usuarios reales.
 
 Sumarlo a `projects-list.ts` sigue las reglas de tu `AGENTS.md`: primero la tabla de textos en español e inglés y después el código.

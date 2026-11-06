@@ -48,7 +48,7 @@ export function Composer() {
       className="grid gap-1.5"
     >
       {/* InputGroup atenúa todo el grupo si hay un hijo deshabilitado; el envío vacío no debe apagar el campo. */}
-      <InputGroup className="min-h-12 rounded-3xl border-panel-border bg-card py-1.5 pr-1.5 pl-1.5 shadow-xs has-disabled:bg-card has-disabled:opacity-100 has-[>textarea]:h-auto dark:bg-card dark:has-disabled:bg-card">
+      <InputGroup className="min-h-12 rounded-3xl border-panel-outline bg-card py-1.5 pr-1.5 pl-1.5 shadow-xs has-disabled:bg-card has-disabled:opacity-100 has-[>textarea]:h-auto dark:bg-card dark:has-disabled:bg-card">
         <InputGroupAddon align="inline-start" className="self-end pb-0.5 pl-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

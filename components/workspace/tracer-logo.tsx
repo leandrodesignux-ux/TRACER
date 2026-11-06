@@ -22,11 +22,34 @@ export function TracerMark({ className }: { className?: string }) {
   );
 }
 
+/** Marca: el glifo sobre un cuadrado con degradado de primary a lavanda. */
+export function TracerBadge({
+  size = "md",
+  className,
+}: {
+  size?: "md" | "lg";
+  className?: string;
+}) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "flex shrink-0 items-center justify-center bg-linear-to-br from-brand-from to-brand-to text-primary-foreground shadow-xs",
+        size === "md" && "size-7 rounded-lg [&>svg]:size-[18px]",
+        size === "lg" && "size-9 rounded-xl [&>svg]:size-6",
+        className,
+      )}
+    >
+      <TracerMark />
+    </span>
+  );
+}
+
 export function TracerLogo({ className }: { className?: string }) {
   return (
     <span className={cn("flex items-center gap-2", className)}>
-      <TracerMark className="text-primary" />
-      <span className="font-heading text-xl font-light tracking-tight">
+      <TracerBadge />
+      <span className="font-heading text-lg font-semibold tracking-heading">
         Tracer
       </span>
     </span>

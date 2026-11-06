@@ -16,7 +16,7 @@ export function Panel({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay }}
       className={cn(
-        "rounded-2xl border border-panel-border bg-panel shadow-xs backdrop-blur-xl",
+        "panel-surface rounded-2xl backdrop-blur-xl",
         className,
       )}
       {...props}
