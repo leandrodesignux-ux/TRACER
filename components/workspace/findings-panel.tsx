@@ -10,6 +10,7 @@ import {
 import { motion } from "motion/react";
 import { useState } from "react";
 
+import { SourceBadge } from "@/components/data/source-badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import {
@@ -115,41 +116,53 @@ function FindingItem({ finding }: { finding: Finding }) {
   const Icon = ICONS[finding.icon];
 
   return (
-    <button
-      type="button"
-      onClick={() => {
-        markRead(finding.id);
-        fillComposer(finding.prompt);
-      }}
-      className="group flex w-full items-start gap-3 rounded-xl border border-panel-outline bg-card/80 p-3 text-left shadow-xs transition-colors outline-none hover:bg-card focus-visible:ring-3 focus-visible:ring-ring/50"
-    >
-      <span
-        className={cn(
-          "flex size-7 shrink-0 items-center justify-center rounded-lg",
-          TONES[finding.tone],
-        )}
+    <div className="group rounded-xl border border-panel-outline bg-card/80 shadow-xs transition-colors hover:bg-card">
+      <button
+        type="button"
+        onClick={() => {
+          markRead(finding.id);
+          fillComposer(finding.prompt);
+        }}
+        className="flex w-full items-start gap-3 rounded-xl p-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <Icon className="size-3.5" aria-hidden />
-      </span>
-      <span className="grid min-w-0 flex-1 gap-0.5">
-        <span className="text-xs leading-snug font-medium">{finding.title}</span>
-        {finding.detail && (
-          <span className="text-[11px] leading-snug text-muted-foreground">
-            {finding.detail}
-          </span>
-        )}
-        <span className="text-[11px] text-muted-foreground">
-          {formatAgo(finding.minutesAgo)}
+        <span
+          className={cn(
+            "flex size-7 shrink-0 items-center justify-center rounded-lg",
+            TONES[finding.tone],
+          )}
+        >
+          <Icon className="size-3.5" aria-hidden />
         </span>
-      </span>
-      <span
-        aria-hidden
-        className={cn(
-          "mt-1.5 size-1.5 shrink-0 rounded-full bg-primary transition-opacity duration-300",
-          unread ? "opacity-100" : "opacity-0",
-        )}
-      />
-      {unread && <span className="sr-only">Sin leer.</span>}
-    </button>
+        <span className="grid min-w-0 flex-1 gap-0.5">
+          <span className="text-xs leading-snug font-medium">
+            {finding.title}
+          </span>
+          {finding.detail && (
+            <span className="text-[11px] leading-snug text-muted-foreground">
+              {finding.detail}
+            </span>
+          )}
+          <span className="text-[11px] text-muted-foreground">
+            {formatAgo(finding.minutesAgo)}
+          </span>
+        </span>
+        <span
+          aria-hidden
+          className={cn(
+            "mt-1.5 size-1.5 shrink-0 rounded-full bg-primary transition-opacity duration-300",
+            unread ? "opacity-100" : "opacity-0",
+          )}
+        />
+        {unread && <span className="sr-only">Sin leer.</span>}
+      </button>
+      {finding.source && (
+        <div className="flex justify-end px-3 pb-3">
+          <SourceBadge
+            source={finding.source}
+            calculation={finding.calculation}
+          />
+        </div>
+      )}
+    </div>
   );
 }

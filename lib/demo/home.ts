@@ -1,11 +1,14 @@
-/**
- * Textos y hallazgos del inicio (Fase 1).
- *
- * Las cifras viven aquí, nunca en los componentes. DEMO_DROP es provisional:
- * la Fase 2 la reemplaza por el resultado de getFunnel() con su fuente.
- */
+import {
+  getFunnel,
+  type CalculationDetails,
+  type DataSource,
+} from "@/lib/ai/tools";
+import { COMPANY_DATA } from "@/lib/data/company";
+import type { SourceId } from "@/lib/data/types";
 
-export type SourceId = "ga4" | "clarity" | "crm";
+export type { PeriodId, SourceId } from "@/lib/data/types";
+
+/** Textos, navegación y hallazgos del inicio. */
 
 export const SOURCES: { id: SourceId; label: string }[] = [
   { id: "ga4", label: "GA4" },
@@ -13,31 +16,33 @@ export const SOURCES: { id: SourceId; label: string }[] = [
   { id: "crm", label: "CRM" },
 ];
 
-/** Caída semanal de demos agendadas (205 vs 250). Fase 2: getFunnel(). */
-export const DEMO_DROP = { value: -18, unit: "%", source: "crm" } as const;
+const WEEKLY_FUNNEL = getFunnel();
+const WEEKLY_FUNNEL_SOURCES = Array.isArray(WEEKLY_FUNNEL.source)
+  ? WEEKLY_FUNNEL.source
+  : [WEEKLY_FUNNEL.source];
+const CRM_FUNNEL_SOURCE = WEEKLY_FUNNEL_SOURCES.find(
+  (source) => source.id === "crm",
+);
+
+/** Caída semanal de demos agendadas, calculada por la herramienta de funnel. */
+export const DEMO_DROP = {
+  value: WEEKLY_FUNNEL.data.drop.percent,
+  unit: "%",
+  source: "crm" as SourceId,
+};
 
 export function formatDelta({ value, unit }: { value: number; unit: string }) {
   const sign = value < 0 ? "−" : "+";
   return `${sign}${Math.abs(value)} ${unit}`;
 }
 
-export const COMPANY = {
-  name: "Cuadra",
-  user: {
-    name: "Valentina R.",
-    initials: "VR",
-    role: "PM de Growth",
-  },
-  dataNote: "Datos demo",
-};
+export const COMPANY = COMPANY_DATA;
 
 export const PERIODS = [
   { id: "7d", label: "Últimos 7 días" },
   { id: "28d", label: "Últimos 28 días" },
   { id: "90d", label: "Últimos 90 días" },
 ] as const;
-
-export type PeriodId = (typeof PERIODS)[number]["id"];
 
 /* ---------- Navegación ---------- */
 
@@ -170,6 +175,8 @@ export type Finding = {
   unread: boolean;
   /** Pregunta que deja en el composer al tocarlo. */
   prompt: string;
+  source?: DataSource;
+  calculation?: CalculationDetails;
 };
 
 export const FINDING_TABS: { id: "todo" | FindingCategory; label: string }[] = [
@@ -193,6 +200,8 @@ export const FINDINGS: Finding[] = [
     minutesAgo: 2 * HOUR,
     unread: true,
     prompt: "¿Por qué cayeron las demos agendadas esta semana?",
+    source: CRM_FUNNEL_SOURCE,
+    calculation: WEEKLY_FUNNEL.calculation,
   },
   {
     id: "android-step",
