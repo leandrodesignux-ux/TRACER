@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef } from "react";
 
+import { AssistantResponse } from "@/components/demo/assistant-response";
 import { Composer } from "@/components/workspace/composer";
 import { Panel } from "@/components/workspace/panel";
 import { TracerBadge, TracerMark } from "@/components/workspace/tracer-logo";
@@ -40,20 +41,30 @@ export function AssistantView() {
           ) : (
             <ol className="mx-auto flex w-full max-w-2xl flex-col gap-4 py-2">
               <AnimatePresence initial={false}>
-                {messages.map((m) => (
-                  <motion.li
-                    key={m.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-nav-active px-3.5 py-2 text-sm text-nav-active-foreground"
-                  >
-                    <span className="sr-only">Tú: </span>
-                    {m.text}
-                  </motion.li>
-                ))}
+                {messages.map((message) =>
+                  message.role === "user" ? (
+                    <motion.li
+                      key={message.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-nav-active px-3.5 py-2 text-sm text-nav-active-foreground"
+                    >
+                      <span className="sr-only">Tú: </span>
+                      {message.text}
+                    </motion.li>
+                  ) : (
+                    <motion.li
+                      key={message.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                    >
+                      <AssistantResponse message={message} />
+                    </motion.li>
+                  ),
+                )}
               </AnimatePresence>
-              <Thinking />
               <div ref={endRef} />
             </ol>
           )}
@@ -89,33 +100,5 @@ export function AssistantView() {
         </div>
       </Panel>
     </>
-  );
-}
-
-function Thinking() {
-  return (
-    <li
-      role="status"
-      className="flex items-start gap-3 text-sm text-muted-foreground"
-    >
-      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <TracerMark className="size-4" />
-      </span>
-      <span className="grid gap-0.5 pt-1">
-        <span className="flex items-center gap-1.5 text-foreground">
-          {ASSISTANT.thinking}
-          <span aria-hidden className="flex gap-0.5">
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className="size-1 animate-pulse rounded-full bg-primary motion-reduce:animate-none"
-                style={{ animationDelay: `${i * 150}ms` }}
-              />
-            ))}
-          </span>
-        </span>
-        <span className="text-xs">{ASSISTANT.thinkingNote}</span>
-      </span>
-    </li>
   );
 }

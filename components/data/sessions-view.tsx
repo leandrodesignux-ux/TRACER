@@ -144,7 +144,7 @@ export function SessionsView() {
   );
 }
 
-function SessionReplay({ session, source }: { session: DemoSession; source: ReturnType<typeof getSessions>["source"] }) {
+export function SessionReplay({ session, source }: { session: DemoSession; source: ReturnType<typeof getSessions>["source"] }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(38);
   const reduceMotion = useReducedMotion();

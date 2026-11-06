@@ -18,6 +18,7 @@ import { getCrmLeads } from "@/lib/ai/tools";
 import type { CrmLead } from "@/lib/data/crm-leads";
 import type { CountryId, DeviceId } from "@/lib/data/types";
 import { useDemoDate } from "@/lib/use-demo-date";
+import { useStored } from "@/lib/storage";
 
 type DeviceFilter = DeviceId | "all";
 type CountryFilter = CountryId | "all";
@@ -25,7 +26,7 @@ type CountryFilter = CountryId | "all";
 export function CrmView() {
   const [device, setDevice] = useState<DeviceFilter>("all");
   const [country, setCountry] = useState<CountryFilter>("all");
-  const [followUpOnly, setFollowUpOnly] = useState(false);
+  const [followUpOnly, setFollowUpOnly] = useStored("crm-good-fit-filter", false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const asOf = useDemoDate();
@@ -68,7 +69,7 @@ export function CrmView() {
               <SelectTrigger size="sm" className="w-28"><SelectValue placeholder="País" /></SelectTrigger>
               <SelectContent><SelectItem value="all">Todos</SelectItem><SelectItem value="chile">Chile</SelectItem><SelectItem value="mexico">México</SelectItem></SelectContent>
             </Select>
-            <Button size="sm" variant={followUpOnly ? "default" : "outline"} onClick={() => setFollowUpOnly((value) => !value)} aria-pressed={followUpOnly} className="text-xs">
+            <Button size="sm" variant={followUpOnly ? "default" : "outline"} onClick={() => setFollowUpOnly(!followUpOnly)} aria-pressed={followUpOnly} className="text-xs">
               Buen encaje sin demo ({followUpCount})
             </Button>
           </div>
