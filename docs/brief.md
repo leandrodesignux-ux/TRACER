@@ -1,4 +1,4 @@
-# Tracer: workspace de growth con IA — brief para Claude Code
+# Tracer: workspace de growth con IA — brief del producto
 
 6 de noviembre de 2026
 
@@ -24,18 +24,18 @@
 
 ## De la referencia al producto
 
-De la referencia de Halo Lab tomamos la estructura de tres zonas: navegación, conversación al centro e historial a la derecha. Cada pieza cambia de función para servir a growth; la estética la ponen tu sistema visual y shadcn.
+La interfaz sigue `docs/referencias/workspace.png`. De la referencia toma la estructura, la densidad y el material; la marca, los textos y la paleta son propios de Tracer.
 
-| Zona de la referencia | En Tracer | Por qué cambia |
-| --- | --- | --- |
-| Saludo genérico con ícono decorativo | Saludo con el hallazgo del día: “Hola, Valentina. Las demos agendadas cayeron 18 % esta semana.” | La primera pantalla ya entrega valor; es el momento memorable del producto |
-| Tres tarjetas de acción (generar, mejorar, explorar) | Encontrar la fuga · Explicar una caída · Diseñar un experimento | Son los tres trabajos del producto |
-| Composer con Adjuntar, Ajustes, Opciones y micrófono | Selector de fuentes (GA4, Clarity, CRM), periodo y segmento | El contexto de un análisis es qué datos y qué ventana; el micrófono no aporta |
-| Menú: Home, Studio, Community, Collections, Library | Inicio, Análisis, Experimentos, Fuentes, Alertas | Navegación por objetos de trabajo de growth |
-| Grupo “AI tools” | Herramientas: calculadora de muestra y editor de funnel | Utilidades que el asistente también usa por dentro |
-| Tarjeta de perfil con “Upgrade now” | Tarjeta del workspace: empresa, estado de sincronización y “Conectar fuente” | El estado de los datos importa más que el plan |
-| Historial con avatares e imágenes | Historial de análisis con fuentes usadas, mini gráfico de la métrica y estado (hipótesis, en prueba, decidido) | Cada hilo muestra en qué quedó, no quién participó |
-| Botón “Create new chat” | Nuevo análisis | Mismo patrón, nombre del dominio |
+| En la referencia | En Tracer |
+| --- | --- |
+| Pastillas Overview, Analytics, Sales, Marketing, Customers, AI Assistant | Resumen, Funnel, Segmentos, Sesiones, CRM y Asistente (activa) |
+| Sidebar: búsqueda, Notification, Home, Contacts, Deals, Tasks, Reports, Automations, New Chat | Búsqueda, Alertas (3), Inicio, Análisis, Experimentos, Informes, Fuentes y Nuevo análisis |
+| Tarjeta de usuario con plan y “Upgrade” | Valentina R., PM de Growth en Cuadra, con la nota “Datos demo” |
+| “AI Assistant · Connected to Analytics Engine” | “Asistente · Conectado a GA4, Clarity y CRM”, con Compartir, Exportar y más acciones |
+| “What would you like to analyze today?” | “¿Qué quieres analizar hoy?” con la marca de Tracer |
+| Chips Analyze revenue, Identify churn, Forecast | Encontrar la fuga, Explicar la caída de demos, Diseñar un experimento |
+| Composer con +, micrófono y voz | Composer con + (fuentes y periodo) y enviar. Sin micrófono: no hay controles que no hagan nada |
+| “AI Insights Timeline” con All, Alerts, Forecast, Automation | “Hallazgos” con Todo, Alertas, Experimentos y Fuentes |
 
 ## Pantallas y flujos del MVP
 
@@ -129,7 +129,8 @@ tracer/
   lib/demo/                         motor de guion: guiones, pasos y resolución por palabras clave
   lib/stats.ts                      tamaño de muestra y duración
   docs/brief.md                     este archivo
-  CLAUDE.md                         reglas del repo para Claude Code
+  AGENTS.md                         reglas del repo para agentes de código
+  CLAUDE.md                         referencia a AGENTS.md
 ```
 
 ## Tema shadcn: sistema visual de Tracer
@@ -261,7 +262,7 @@ El shell es un degradado de `--shell-from` a `--shell-to`. La marca es el glifo 
 
 **Tonos de estado.** `--tone-danger`, `--tone-warning`, `--tone-info` y `--tone-success`, cada uno con su `-soft` para el fondo del ícono. Los hallazgos usan danger para la caída de demos, warning para Android, info para el calendario y Clarity, y success para el experimento listo.
 
-**Tipografía.** Plus Jakarta Sans para todo, con `next/font/google` en `lib/fonts.ts` y pesos 400, 500 y 600. Los títulos van en 400 o 500 con `tracking-heading` (−0.02em); no se usan pesos 300.
+**Tipografía.** Plus Jakarta Sans para todo, alojada en `app/fonts/` y cargada con `next/font/local` desde `lib/fonts.ts` en pesos 400, 500 y 600. Los títulos van en 400 o 500 con `tracking-heading` (−0.02em); no se usan pesos 300.
 
 **Reglas que Claude Code tiene que respetar.** Colores siempre por token semántico (`bg-primary`, `text-muted-foreground`, `text-tone-danger`), nunca valores sueltos ni `dark:` manuales. Las cifras por fuente usan `text-source-ga4`, `text-source-clarity` y `text-source-crm`, legibles como texto en los dos modos. En oscuro, el texto sobre `primary` es oscuro (`#0D111C`), porque el blanco no llega al contraste mínimo.
 
@@ -300,11 +301,11 @@ La empresa ficticia es **Cuadra**, un SaaS B2B de gestión de turnos para cadena
 
 **Archivos sugeridos en `lib/data/`:** `company.ts`, `funnel.ts`, `segments.ts`, `sessions.ts`, `crm-leads.ts`, `changelog.ts`, `alerts.ts` y `experiments.ts` (con un experimento ya decidido para el estado “tres semanas después”).
 
-## Plan por fases y prompts para Claude Code
+## Plan por fases y prompts para agentes de código
 
-Son seis fases con una rama y un PR cada una; cada fase termina con algo que se puede abrir y probar, con su preview de Vercel para verla en el celular. El primer paso es dejar un `CLAUDE.md` en el repo para que todas las sesiones arranquen con las mismas reglas.
+Son seis fases con una rama y un PR cada una; cada fase termina con algo que se puede abrir y probar, con su preview de Vercel para verla en el celular. Las reglas compartidas viven en `AGENTS.md`; `CLAUDE.md` solo apunta a ese archivo.
 
-**`CLAUDE.md` del repo:** ver el archivo en la raíz.
+**`AGENTS.md` del repo:** ver el archivo en la raíz.
 
 **Fase 0. Setup** (hecha)
 
@@ -354,7 +355,7 @@ Tracer entra como un caso nuevo con la etiqueta honesta que ya usas en otros pro
 2. La decisión de diseño: ninguna cifra sin fuente, llevada a la arquitectura con herramientas que devuelven su fuente.
 3. Del layout de referencia a un producto de growth: la tabla de esta doc, en versión visual.
 4. El momento clave: el asistente distingue un bug de algo que vale la pena testear.
-5. Cómo se construyó: Claude Code, shadcn y un sistema visual propio, frío, tomado de la referencia.
+5. Cómo se construyó: agentes de código, shadcn y un sistema visual propio, frío, tomado de la referencia.
 6. Qué aprendí y qué validaría con usuarios reales.
 
 Sumarlo a `projects-list.ts` sigue las reglas de tu `AGENTS.md`: primero la tabla de textos en español e inglés y después el código.
