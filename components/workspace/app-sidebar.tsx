@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +33,10 @@ import {
 } from "@/components/ui/sidebar";
 import { WorkspaceCard } from "@/components/workspace/workspace-card";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import { ALERT_COUNT, SIDE_NAV, type NavIcon } from "@/lib/demo/home";
+import { getAlerts } from "@/lib/ai/tools";
+import { SIDE_NAV, type NavIcon } from "@/lib/demo/home";
+import { useStored } from "@/lib/storage";
+import { useDemoDate } from "@/lib/use-demo-date";
 
 const ICONS: Record<NavIcon, LucideIcon> = {
   home: House,
@@ -53,32 +56,20 @@ const ALERTS_ITEM = {
 const itemClass =
   "h-8 rounded-lg text-[13px] text-sidebar-foreground hover:bg-panel data-active:bg-card data-active:text-foreground data-active:shadow-xs";
 
-function matches(label: string, query: string) {
-  return label
-    .toLocaleLowerCase("es")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .includes(
-      query
-        .toLocaleLowerCase("es")
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, ""),
-    );
-}
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { newAnalysis } = useWorkspace();
   const { state, isMobile, setOpen, setOpenMobile, toggleSidebar } =
     useSidebar();
-  const [query, setQuery] = useState("");
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [readAlertIds] = useStored<string[]>("read-alerts", []);
+  const asOf = useDemoDate();
+  const unreadAlerts = useMemo(
+    () => getAlerts({ asOf }).data.filter((alert) => alert.unread && !readAlertIds.includes(alert.id)).length,
+    [asOf, readAlertIds],
+  );
 
   const collapsed = state === "collapsed" && !isMobile;
-  const q = query.trim();
-  const showAlerts = !q || matches(ALERTS_ITEM.label, q);
-  const nav = q ? SIDE_NAV.filter((item) => matches(item.label, q)) : SIDE_NAV;
-  const noResults = !showAlerts && nav.length === 0;
+  const openSearch = () => document.dispatchEvent(new Event("tracer:open-search"));
 
   const closeOnMobile = () => {
     if (isMobile) setOpenMobile(false);
@@ -109,7 +100,7 @@ export function AppSidebar() {
               className="hover:bg-panel"
               onClick={() => {
                 setOpen(true);
-                requestAnimationFrame(() => searchRef.current?.focus());
+                requestAnimationFrame(openSearch);
               }}
             >
               <Search />
@@ -123,9 +114,10 @@ export function AppSidebar() {
                 aria-hidden
               />
               <SidebarInput
-                ref={searchRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                value=""
+                readOnly
+                onFocus={openSearch}
+                onClick={openSearch}
                 placeholder="Buscar"
                 aria-label="Buscar en el menú"
                 className="h-8 rounded-lg border-panel-outline bg-card/70 pl-8 text-xs"
@@ -147,33 +139,31 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup className="py-0">
           <SidebarMenu>
-            {showAlerts && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === ALERTS_ITEM.href}
-                  tooltip={ALERTS_ITEM.label}
-                  className={itemClass}
-                >
-                  <Link href={ALERTS_ITEM.href} onClick={closeOnMobile}>
-                    <Bell />
-                    <span>{ALERTS_ITEM.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-                <SidebarMenuBadge className="top-1.5! rounded-full bg-primary text-[10px] text-primary-foreground peer-hover/menu-button:text-primary-foreground peer-data-active/menu-button:text-primary-foreground">
-                  {ALERT_COUNT}
-                  <span className="sr-only"> alertas</span>
-                </SidebarMenuBadge>
-              </SidebarMenuItem>
-            )}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === ALERTS_ITEM.href}
+                tooltip={ALERTS_ITEM.label}
+                className={itemClass}
+              >
+                <Link href={ALERTS_ITEM.href} onClick={closeOnMobile}>
+                  <Bell />
+                  <span>{ALERTS_ITEM.label}</span>
+                </Link>
+              </SidebarMenuButton>
+              <SidebarMenuBadge className="top-1.5! rounded-full bg-primary text-[10px] text-primary-foreground peer-hover/menu-button:text-primary-foreground peer-data-active/menu-button:text-primary-foreground">
+                {unreadAlerts}
+                <span className="sr-only"> alertas</span>
+              </SidebarMenuBadge>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
-        {showAlerts && nav.length > 0 && <SidebarSeparator className="mx-3" />}
+        <SidebarSeparator className="mx-3" />
 
         <SidebarGroup className="py-0">
           <SidebarMenu>
-            {nav.map((item) => {
+            {SIDE_NAV.map((item) => {
               const Icon = ICONS[item.icon];
               return (
                 <SidebarMenuItem key={item.href}>
@@ -192,11 +182,6 @@ export function AppSidebar() {
               );
             })}
           </SidebarMenu>
-          {noResults && (
-            <p className="px-2 py-1.5 text-xs text-muted-foreground">
-              Sin resultados para “{q}”.
-            </p>
-          )}
         </SidebarGroup>
 
         <SidebarSeparator className="mx-3" />

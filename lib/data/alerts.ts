@@ -7,6 +7,7 @@ export type DemoAlert = {
   segment: string;
   changePercent: number;
   severity: "high" | "medium" | "low";
+  unread: boolean;
   prompt: string;
 };
 
@@ -20,6 +21,7 @@ export function createAlerts(asOf: Date = new Date()): DemoAlert[] {
       segment: "Todos",
       changePercent: -18,
       severity: "high",
+      unread: true,
       prompt: "¿Por qué cayeron las demos agendadas esta semana?",
     },
     {
@@ -29,6 +31,7 @@ export function createAlerts(asOf: Date = new Date()): DemoAlert[] {
       segment: "Mobile iOS",
       changePercent: -38,
       severity: "high",
+      unread: true,
       prompt: "¿Qué explica la caída del paso a demo en iOS?",
     },
     {
@@ -38,6 +41,7 @@ export function createAlerts(asOf: Date = new Date()): DemoAlert[] {
       segment: "Mobile Android",
       changePercent: -15,
       severity: "medium",
+      unread: true,
       prompt: "¿Cuánto cayó el paso a demo agendada en Android?",
     },
   ];
