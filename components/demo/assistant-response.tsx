@@ -22,6 +22,10 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { TracerMark } from "@/components/workspace/tracer-logo";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import type { AssistantMessage } from "@/lib/demo/threads";
+import {
+  experimentFromPlan,
+  persistExperiment,
+} from "@/lib/demo/experiment-state";
 import type {
   ExperimentPlanResponseBlock,
   ExperimentResultResponseBlock,
@@ -177,8 +181,8 @@ function LeadsBlock({ block }: { block: LeadsResponseBlock }) {
 
 function ExperimentPlanBlock({ block }: { block: ExperimentPlanResponseBlock }) {
   const router = useRouter();
-  const save = () => { writeStored("saved-experiments", [block]); toast.success("Experimento guardado"); router.push("/experimentos"); };
-  return <BlockShell title={block.name} source={block.source} calculation={block.calculation}><div className="grid gap-3"><p className="rounded-lg bg-primary/8 p-3 text-sm leading-relaxed"><Sparkles className="mr-1.5 inline size-4 text-primary" />{block.hypothesis}</p><dl className="grid gap-2 text-xs sm:grid-cols-2"><Metric label="Métrica principal" value={block.primaryMetric} /><Metric label="Guardiana" value={block.guardrail} /><Metric label="Segmento" value={block.segment} /><Metric label="Duración estimada" value={`${block.estimate.weeks} semanas · ${formatNumber(block.estimate.totalSample)} personas`} /></dl><Button size="sm" onClick={save}><FlaskConical />Guardar experimento</Button></div></BlockShell>;
+  const save = () => { persistExperiment(experimentFromPlan(block)); writeStored("open-experiment-designer", true); toast.success("Diseño preparado"); router.push("/experimentos"); };
+  return <BlockShell title={block.name} source={block.source} calculation={block.calculation}><div className="grid gap-3"><p className="rounded-lg bg-primary/8 p-3 text-sm leading-relaxed"><Sparkles className="mr-1.5 inline size-4 text-primary" />{block.hypothesis}</p><dl className="grid gap-2 text-xs sm:grid-cols-2"><Metric label="Métrica principal" value={block.primaryMetric} /><Metric label="Guardiana" value={block.guardrail} /><Metric label="Segmento" value={block.segment} /><Metric label="Duración estimada" value={`${block.estimate.weeks} semanas · ${formatNumber(block.estimate.totalSample)} personas`} /></dl><Button size="sm" onClick={save}><FlaskConical />Diseñar experimento</Button></div></BlockShell>;
 }
 
 function ExperimentResultBlock({ block }: { block: ExperimentResultResponseBlock }) {
