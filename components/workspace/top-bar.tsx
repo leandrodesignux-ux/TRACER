@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { TracerLogo } from "@/components/workspace/tracer-logo";
+import { GlobalSearch } from "@/components/workspace/global-search";
 import { COMPANY, TOP_NAV } from "@/lib/demo/home";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +66,7 @@ export function TopBar() {
       </nav>
 
       <div className="ml-auto flex items-center gap-2 lg:ml-0 lg:justify-self-end">
+        <GlobalSearch />
         <ThemeToggle />
         <Avatar className="size-8">
           <AvatarFallback className="text-xs">
