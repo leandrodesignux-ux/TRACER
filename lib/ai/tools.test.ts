@@ -5,6 +5,7 @@ import {
   getDemoExperimentOutcome,
   getChangelog,
   getCrmLeads,
+  getDropTimeline,
   getExperiments,
   getFunnel,
   getAlerts,
@@ -172,6 +173,26 @@ describe("herramientas de datos demo", () => {
     expect(health.data).toHaveLength(3);
     expect(report.data.problematicSessions).toBe(3);
     expect(report.data.recoverableLeads).toBe(42);
-    expect(report.source).toHaveLength(6);
+    expect(report.source).toHaveLength(8);
+  });
+
+  it("conecta el despliegue v2.3 con la caída diaria de iOS", () => {
+    const timeline = getDropTimeline({ asOf: AS_OF });
+    const previous = timeline.data.series.slice(0, 7);
+    const current = timeline.data.series.slice(7);
+
+    expect(timeline.data.changelog.title).toContain("v2.3");
+    expect(timeline.data.daysSinceDeploy).toBe(9);
+    expect(previous.reduce((sum, day) => sum + day.ios, 0)).toBe(46);
+    expect(current.reduce((sum, day) => sum + day.ios, 0)).toBe(8);
+    expect(previous.reduce((sum, day) => sum + day.android, 0)).toBe(34);
+    expect(current.reduce((sum, day) => sum + day.android, 0)).toBe(22);
+  });
+
+  it("genera nombres de empresas creíbles sin sufijos numéricos", () => {
+    const leads = getCrmLeads({ asOf: AS_OF, period: "28d" }).data;
+    expect(leads).toHaveLength(120);
+    expect(leads.every((lead) => !/\d/.test(lead.company))).toBe(true);
+    expect(new Set(leads.map((lead) => lead.company)).size).toBe(120);
   });
 });

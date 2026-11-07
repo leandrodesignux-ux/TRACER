@@ -26,6 +26,7 @@ import {
   type ConversationMessage,
 } from "@/lib/demo/threads";
 import { clearStored, useStored } from "@/lib/storage";
+import { useDemoDate } from "@/lib/use-demo-date";
 
 type WorkspaceContextValue = {
   draft: string;
@@ -63,6 +64,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
+  const asOf = useDemoDate();
 
   const [draft, setDraft] = useState("");
   const [sources, setSources] = useState<SourceId[]>(SOURCES.map((s) => s.id));
@@ -112,6 +114,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       prompt: text,
       period,
       enabledSources: sources,
+      asOf,
     });
     const nextMessages: ConversationMessage[] = [
       ...(currentThread?.messages ?? []),
@@ -119,7 +122,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       {
         id: `a-${nonce}`,
         role: "assistant",
-        response,
+        intent: response.intent,
+        prompt: text,
+        period,
+        sources,
+        asOf: asOf.toISOString(),
         status: "running",
       },
     ];
@@ -146,7 +153,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     ]);
     setCurrentThreadId(thread.id);
     setDraft("");
-  }, [currentThread, draft, period, setCurrentThreadId, setThreads, sources, threads]);
+  }, [asOf, currentThread, draft, period, setCurrentThreadId, setThreads, sources, threads]);
 
   const setAssistantStatus = useCallback(
     (messageId: string, status: "complete" | "stopped") => {

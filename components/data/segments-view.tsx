@@ -12,7 +12,7 @@ import { Panel } from "@/components/workspace/panel";
 import { ViewHeader } from "@/components/workspace/view-header";
 import { getSegments } from "@/lib/ai/tools";
 import type { SegmentDimension } from "@/lib/data/segments";
-import { formatPercent } from "@/lib/format";
+import { formatPercent, formatPointChange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useDemoDate } from "@/lib/use-demo-date";
 
@@ -63,11 +63,11 @@ export function SegmentsView() {
           <div className="hidden md:block">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-card"><TableRow><SortableHead label="Segmento" active={sortKey === "label"} descending={descending} onClick={() => sort("label")} /><SortableHead label="Formularios" active={sortKey === "completed"} descending={descending} onClick={() => sort("completed")} /><SortableHead label="Demos" active={sortKey === "scheduled"} descending={descending} onClick={() => sort("scheduled")} /><SortableHead label="Conversión" active={sortKey === "rate"} descending={descending} onClick={() => sort("rate")} /><SortableHead label="Variación" active={sortKey === "change"} descending={descending} onClick={() => sort("change")} /><TableHead>Fuente</TableHead></TableRow></TableHeader>
-              <TableBody>{rows.map((row) => <TableRow key={row.id} className={cn(row.changePoints <= -20 && "bg-tone-danger-soft/45")}><TableCell className="font-medium">{row.label}</TableCell><TableCell className="tabular-nums">{row.current.completed}</TableCell><TableCell className="tabular-nums">{row.current.scheduled}</TableCell><TableCell><RateBar rate={row.currentRate} danger={row.changePoints <= -20} /></TableCell><TableCell className={cn("font-medium tabular-nums", row.changePoints < 0 ? "text-tone-danger" : "text-tone-success")}>{row.changePoints > 0 ? "+" : ""}{row.changePoints} pp</TableCell><TableCell><SourceBadge source={result.source} calculation={result.calculation} /></TableCell></TableRow>)}</TableBody>
+              <TableBody>{rows.map((row) => <TableRow key={row.id} className={cn(row.changePoints <= -20 && "bg-tone-danger-soft/45")}><TableCell className="font-medium">{row.label}</TableCell><TableCell className="tabular-nums">{row.current.completed}</TableCell><TableCell className="tabular-nums">{row.current.scheduled}</TableCell><TableCell><RateBar rate={row.currentRate} danger={row.changePoints <= -20} /></TableCell><TableCell className={cn("font-medium tabular-nums", row.changePoints < 0 ? "text-tone-danger" : "text-tone-success")}>{formatPointChange(row.changePoints)}</TableCell><TableCell><SourceBadge source={result.source} calculation={result.calculation} /></TableCell></TableRow>)}</TableBody>
             </Table>
           </div>
           <div className="grid gap-2 p-3 md:hidden">
-            {rows.map((row) => <article key={row.id} className={cn("rounded-xl border border-panel-outline bg-card/65 p-3", row.changePoints <= -20 && "border-tone-danger/35 bg-tone-danger-soft/40")}><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-medium">{row.label}</p><p className="text-xs text-muted-foreground">{row.current.scheduled} demos de {row.current.completed} formularios</p></div><SourceBadge source={result.source} calculation={result.calculation} /></div><div className="mt-3 flex items-end justify-between gap-3"><RateBar rate={row.currentRate} danger={row.changePoints <= -20} /><span className={cn("text-xs font-medium tabular-nums", row.changePoints < 0 ? "text-tone-danger" : "text-tone-success")}>{row.changePoints > 0 ? "+" : ""}{row.changePoints} pp</span></div></article>)}
+            {rows.map((row) => <article key={row.id} className={cn("rounded-xl border border-panel-outline bg-card/65 p-3", row.changePoints <= -20 && "border-tone-danger/35 bg-tone-danger-soft/40")}><div className="flex items-start justify-between gap-2"><div><p className="text-sm font-medium">{row.label}</p><p className="text-xs text-muted-foreground">{row.current.scheduled} demos de {row.current.completed} formularios</p></div><SourceBadge source={result.source} calculation={result.calculation} /></div><div className="mt-3 flex items-end justify-between gap-3"><RateBar rate={row.currentRate} danger={row.changePoints <= -20} /><span className={cn("text-xs font-medium tabular-nums", row.changePoints < 0 ? "text-tone-danger" : "text-tone-success")}>{formatPointChange(row.changePoints)}</span></div></article>)}
           </div>
         </div>
       </Panel>

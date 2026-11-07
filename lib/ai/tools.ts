@@ -1,8 +1,10 @@
 import { createAlerts, type DemoAlert } from "@/lib/data/alerts";
 import { createChangelog } from "@/lib/data/changelog";
 import { createCrmLeads } from "@/lib/data/crm-leads";
+import { createDailyDemoTimeline } from "@/lib/data/daily-demos";
 import {
   DEMO_AS_OF,
+  demoToday,
   formatDateRange,
   periodDays,
   rollingRange,
@@ -174,7 +176,7 @@ export function getSegments(
       ...row,
       currentRate,
       previousRate,
-      changePoints: Math.round((currentRate - previousRate) * 100),
+      changePoints: (currentRate - previousRate) * 100,
     };
   });
   const range = rollingRange(asOf, periodDays(period));
@@ -292,6 +294,34 @@ export function getChangelog(filters: CommonFilters = {}) {
       `${entries.length} cambios vinculados a sesiones`,
     ),
   } satisfies ToolResult<typeof entries>;
+}
+
+export function getDropTimeline(filters: CommonFilters = {}) {
+  const asOf = filters.asOf ?? DEMO_AS_OF;
+  const range = rollingRange(asOf, 14);
+  const changelog = createChangelog(asOf)[0]!;
+  const series = createDailyDemoTimeline(asOf);
+  const deployedAt = new Date(`${changelog.date}T12:00:00`);
+  const daysSinceDeploy = Math.round(
+    (demoToday(asOf).getTime() - deployedAt.getTime()) / 86_400_000,
+  );
+  return {
+    data: { changelog, daysSinceDeploy, series },
+    source: [
+      source(
+        "ga4",
+        "demo_scheduled diario · dispositivo iOS y Android",
+        range,
+        `${series.length} días`,
+      ),
+      source(
+        "clarity",
+        "versión del calendario observada en sesiones de /demo",
+        range,
+        "Despliegue v2.3 vinculado a sesiones",
+      ),
+    ],
+  } satisfies ToolResult<unknown>;
 }
 
 export function getExperiments(
@@ -504,6 +534,7 @@ export function getWeeklyReport(filters: CommonFilters = {}) {
   const sessions = getSessions({ asOf, period: filters.period ?? "7d", problematicOnly: true });
   const leads = getCrmLeads({ asOf, period: "28d", goodFitWithoutDemo: true });
   const experiment = getExperiments({ asOf, status: "ready_to_read" });
+  const timeline = getDropTimeline({ asOf });
   const ios = segments.data.find((row) => row.id === "ios")!;
   const funnelSources = Array.isArray(funnel.source) ? funnel.source : [funnel.source];
   const segmentSources = Array.isArray(segments.source) ? segments.source : [segments.source];
@@ -517,11 +548,26 @@ export function getWeeklyReport(filters: CommonFilters = {}) {
       problematicSessions: sessions.data.length,
       recoverableLeads: leads.data.length,
       experiment: experiment.data[0],
+      cause: {
+        title: timeline.data.changelog.title,
+        date: timeline.data.changelog.date,
+        daysSinceDeploy: timeline.data.daysSinceDeploy,
+      },
+      dropStep: {
+        from: funnel.data.stages.find((stage) => stage.id === funnel.data.drop.from)!.label,
+        to: funnel.data.stages.find((stage) => stage.id === funnel.data.drop.to)!.label,
+        previous: funnel.data.drop.previous,
+        current: funnel.data.drop.current,
+      },
       metricSources: {
         demos: funnelSources.filter((item) => item.id === "crm"),
         ios: segmentSources,
         sessions: sessions.source,
         leads: leads.source,
+        cause: timeline.source,
+      },
+      metricCalculations: {
+        ios: segments.calculation,
       },
     },
     source: [
@@ -529,6 +575,7 @@ export function getWeeklyReport(filters: CommonFilters = {}) {
       ...segmentSources,
       sessions.source,
       leads.source,
+      ...timeline.source,
     ],
     calculation: funnel.calculation,
   } satisfies ToolResult<unknown>;

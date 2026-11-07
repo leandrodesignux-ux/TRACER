@@ -2,6 +2,9 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 
+import { addDays } from "@/lib/data/date";
+import { useStored } from "@/lib/storage";
+
 const PRERENDER_DATE = "2026-11-06";
 
 function subscribe() {
@@ -19,5 +22,9 @@ function clientDateKey() {
 /** Mantiene el HTML estático y actualiza los rangos al día local al hidratar. */
 export function useDemoDate() {
   const dateKey = useSyncExternalStore(subscribe, clientDateKey, () => PRERENDER_DATE);
-  return useMemo(() => new Date(`${dateKey}T12:00:00`), [dateKey]);
+  const [demoState] = useStored<"current" | "future">("demo-state", "current");
+  return useMemo(() => {
+    const current = new Date(`${dateKey}T12:00:00`);
+    return demoState === "future" ? addDays(current, 21) : current;
+  }, [dateKey, demoState]);
 }

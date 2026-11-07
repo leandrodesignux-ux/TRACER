@@ -8,6 +8,10 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
  * así que no hay errores de hidratación.
  */
 
+export const STORAGE_VERSION = 1;
+
+const BASE_PREFIX = "tracer:";
+const PREFIX = `${BASE_PREFIX}v${STORAGE_VERSION}:`;
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -17,7 +21,7 @@ function emit() {
 function subscribe(listener: () => void) {
   listeners.add(listener);
   const onStorage = (event: StorageEvent) => {
-    if (event.key === null || event.key.startsWith(PREFIX)) listener();
+    if (event.key === null || event.key.startsWith(BASE_PREFIX)) listener();
   };
   window.addEventListener("storage", onStorage);
   return () => {
@@ -25,8 +29,6 @@ function subscribe(listener: () => void) {
     window.removeEventListener("storage", onStorage);
   };
 }
-
-const PREFIX = "tracer:";
 
 function readRaw(key: string): string | null {
   try {
@@ -60,7 +62,7 @@ export function clearStored() {
     const keys: string[] = [];
     for (let i = 0; i < window.localStorage.length; i++) {
       const key = window.localStorage.key(i);
-      if (key?.startsWith(PREFIX)) keys.push(key);
+      if (key?.startsWith(BASE_PREFIX)) keys.push(key);
     }
     keys.forEach((key) => window.localStorage.removeItem(key));
   } catch {

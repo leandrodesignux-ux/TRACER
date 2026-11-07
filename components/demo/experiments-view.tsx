@@ -48,7 +48,7 @@ export function ExperimentsView() {
   const asOf = useDemoDate();
   const [stored, setStored] = useStored<StoredExperiment[]>("saved-experiments", []);
   const [openRequested, setOpenRequested] = useStored("open-experiment-designer", false);
-  const [demoState, setDemoState] = useStored<"actual" | "future">("experiment-demo-state", "actual");
+  const [demoState, setDemoState] = useStored<"current" | "future">("demo-state", "current");
   const [designerOpen, setDesignerOpen] = useState(false);
   const [editing, setEditing] = useState<StoredExperiment | undefined>();
   const previousExperiment = useMemo(
@@ -57,10 +57,15 @@ export function ExperimentsView() {
   );
   const validStored = stored.filter((item) => item && typeof item.id === "string");
   const previousOverride = validStored.find((item) => item.id === previousExperiment.id);
-  const experiments = useMemo(
-    () => [previousOverride ?? previousExperiment, ...validStored.filter((item) => item.id !== previousExperiment.id)],
-    [previousExperiment, previousOverride, validStored],
-  );
+  const experiments = useMemo(() => {
+    const items = [
+      previousOverride ?? previousExperiment,
+      ...validStored.filter((item) => item.id !== previousExperiment.id),
+    ];
+    return demoState === "future"
+      ? items.map((item) => item.status === "running" ? advanceExperiment(item, asOf) : item)
+      : items;
+  }, [asOf, demoState, previousExperiment, previousOverride, validStored]);
   const open = designerOpen || openRequested;
 
   const upsert = (experiment: StoredExperiment) => {
@@ -73,10 +78,9 @@ export function ExperimentsView() {
     setEditing(undefined);
   };
 
-  const setFuture = (value: "actual" | "future") => {
+  const setFuture = (value: "current" | "future") => {
     setDemoState(value);
     if (value === "future") {
-      setStored(validStored.map((item) => item.status === "running" ? advanceExperiment(item, asOf) : item));
       toast.success("La demo avanzó tres semanas");
     }
   };
@@ -88,8 +92,8 @@ export function ExperimentsView() {
         <div className="flex flex-col gap-3 border-b border-panel-outline p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground">Estado demo</span>
-            <ToggleGroup type="single" value={demoState} onValueChange={(value) => value && setFuture(value as "actual" | "future")} variant="outline" size="sm" spacing={0}>
-              <ToggleGroupItem value="actual">Actual</ToggleGroupItem>
+            <ToggleGroup type="single" value={demoState} onValueChange={(value) => value && setFuture(value as "current" | "future")} variant="outline" size="sm" spacing={0}>
+              <ToggleGroupItem value="current">Hoy</ToggleGroupItem>
               <ToggleGroupItem value="future">Tres semanas después</ToggleGroupItem>
             </ToggleGroup>
           </div>
@@ -126,7 +130,7 @@ export function ExperimentsView() {
           onClose={closeDesigner}
           onSave={(experiment) => {
             upsert(experiment);
-            setDemoState("actual");
+            setDemoState("current");
             closeDesigner();
             toast.success("Diseño guardado");
           }}
@@ -139,7 +143,9 @@ export function ExperimentsView() {
 function ExperimentCard({ experiment, onUpdate, onEdit }: { experiment: StoredExperiment; onUpdate: (experiment: StoredExperiment) => void; onEdit: () => void }) {
   const copySummary = async () => {
     const result = experiment.result ? `\n- Control: ${formatPercent(experiment.result.controlRate)}\n- Variante: ${formatPercent(experiment.result.variantRate)}` : "";
-    const summary = `## ${experiment.name}\n\n${experiment.hypothesis}\n\n- Métrica: ${experiment.primaryMetric}\n- Segmento: ${experiment.segment}\n- Duración: ${experiment.durationWeeks} semanas\n- Muestra: ${formatNumber(experiment.totalSample)}${result}`;
+    const sources = (Array.isArray(experiment.source) ? experiment.source : [experiment.source]).map((item) => item.label).join(" + ");
+    const decision = experiment.decision ? `\n- Decisión: ${experiment.decision}${experiment.decidedAt ? ` · ${experiment.decidedAt.slice(0, 10)}` : ""}` : "";
+    const summary = `## ${experiment.name}\n\n${experiment.hypothesis}\n\n- Métrica: ${experiment.primaryMetric}\n- Segmento: ${experiment.segment}\n- Duración: ${experiment.durationWeeks} semanas\n- Muestra: ${formatNumber(experiment.totalSample)}${result}${decision}\n- Fuente: ${sources}${experiment.calculation ? ` · ${experiment.calculation.formula}` : ""}`;
     try {
       await navigator.clipboard.writeText(summary);
       toast.success("Resumen copiado");
@@ -152,7 +158,7 @@ function ExperimentCard({ experiment, onUpdate, onEdit }: { experiment: StoredEx
     <article className="grid gap-3 rounded-xl border border-panel-outline bg-card/75 p-3 shadow-xs">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0"><h3 className="text-sm font-medium leading-snug">{experiment.name}</h3><p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-muted-foreground">{experiment.hypothesis}</p></div>
-        <SourceBadge source={experiment.source} calculation={experiment.calculation} />
+        <span className="flex flex-wrap justify-end gap-1"><SourceBadge source={experiment.source} />{experiment.calculation && <SourceBadge source={experiment.source} calculation={experiment.calculation} />}</span>
       </div>
 
       <dl className="grid gap-1.5 text-[11px]">
@@ -173,7 +179,7 @@ function ExperimentCard({ experiment, onUpdate, onEdit }: { experiment: StoredEx
       <div className="flex flex-wrap gap-1.5">
         {experiment.status === "draft" && <><Button size="sm" variant="outline" className="h-7 flex-1 text-[11px]" onClick={onEdit}><Pencil />Editar</Button><Button size="sm" className="h-7 flex-1 text-[11px]" onClick={() => onUpdate({ ...experiment, status: "running" })}><Play />Iniciar</Button></>}
         {experiment.status === "running" && <Badge variant="outline" className="bg-tone-info-soft text-tone-info"><FlaskConical />Recolectando datos</Badge>}
-        {experiment.status === "ready_to_read" && DECISIONS.map((decision) => <Button key={decision.id} size="sm" variant={decision.id === "scale" ? "default" : "outline"} className="h-7 flex-1 px-2 text-[10px]" onClick={() => onUpdate({ ...experiment, status: "decided", decision: decision.id })}>{decision.label}</Button>)}
+        {experiment.status === "ready_to_read" && DECISIONS.map((decision) => <Button key={decision.id} size="sm" variant={decision.id === "scale" ? "default" : "outline"} className="h-7 flex-1 px-2 text-[10px]" onClick={() => onUpdate({ ...experiment, status: "decided", decision: decision.id, decidedAt: new Date().toISOString() })}>{decision.label}</Button>)}
         <Button size="icon-sm" variant="ghost" onClick={copySummary} aria-label={`Copiar resumen de ${experiment.name}`} className="ml-auto"><Clipboard /></Button>
       </div>
     </article>

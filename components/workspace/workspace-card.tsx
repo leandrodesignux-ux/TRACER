@@ -1,6 +1,6 @@
 "use client";
 
-import { Cable, Check, ChevronsUpDown, RotateCcw } from "lucide-react";
+import { Cable, Check, ChevronsUpDown, FastForward, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -16,10 +16,15 @@ import {
 import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { COMPANY } from "@/lib/demo/home";
+import { useStored } from "@/lib/storage";
 
 export function WorkspaceCard() {
   const { resetDemo } = useWorkspace();
   const { isMobile, setOpenMobile } = useSidebar();
+  const [demoState, setDemoState] = useStored<"current" | "future">(
+    "demo-state",
+    "current",
+  );
 
   return (
     <DropdownMenu>
@@ -65,6 +70,19 @@ export function WorkspaceCard() {
           <span className="ml-auto text-xs text-muted-foreground">
             {COMPANY.dataNote}
           </span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
+          Estado demo
+        </DropdownMenuLabel>
+        <DropdownMenuItem onSelect={() => setDemoState("current")}>
+          <Check className={demoState === "current" ? "opacity-100" : "opacity-0"} />
+          Hoy
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => setDemoState("future")}>
+          <FastForward />
+          Tres semanas después
+          {demoState === "future" && <Check className="ml-auto" />}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

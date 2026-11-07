@@ -1,4 +1,4 @@
-export type SourceId = "ga4" | "clarity" | "crm";
+export type SourceId = "ga4" | "clarity" | "crm" | "derived" | "tracer";
 
 export type PeriodId = "7d" | "28d" | "90d";
 
@@ -17,4 +17,6 @@ export const SOURCE_LABELS: Record<SourceId, string> = {
   ga4: "GA4",
   clarity: "Clarity",
   crm: "CRM",
+  derived: "Calculado",
+  tracer: "Tracer",
 };

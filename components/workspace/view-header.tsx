@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { COMPANY, FINDINGS } from "@/lib/demo/home";
+import { responseToMarkdown } from "@/lib/demo/markdown";
+import { responseForMessage } from "@/lib/demo/threads";
 
 export function ViewHeader({
   title,
@@ -98,7 +100,7 @@ function AssistantActions() {
       ...messages.map((message) =>
         message.role === "user"
           ? `**Tú:** ${message.text}\n`
-          : `**Tracer:** ${message.response.text}\n`,
+          : `${responseToMarkdown(responseForMessage(message))}\n`,
       ),
     ];
     try {

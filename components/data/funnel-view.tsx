@@ -96,7 +96,8 @@ export function FunnelView() {
         <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-3 sm:p-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="grid content-start gap-2">
             {result.data.stages.map((item) => {
-              const max = Math.max(item.current, item.previous);
+              const firstStage = result.data.stages[0]!;
+              const max = Math.max(firstStage.current, firstStage.previous);
               const source = findSource(result.source, item.sourceId);
               const isDrop = item.id === "demo_scheduled";
               return (
@@ -146,7 +147,7 @@ export function FunnelView() {
                           "block h-full rounded-full",
                           isDrop ? "bg-tone-danger" : "bg-chart-1",
                         )}
-                        style={{ width: `${(item.current / max) * 100}%` }}
+                        style={{ width: `${Math.max(0.5, (item.current / max) * 100)}%` }}
                       />
                     </span>
                     <span className="font-medium tabular-nums">
@@ -156,7 +157,7 @@ export function FunnelView() {
                     <span className="h-1.5 overflow-hidden rounded-full bg-muted">
                       <span
                         className="block h-full rounded-full bg-chart-4"
-                        style={{ width: `${(item.previous / max) * 100}%` }}
+                        style={{ width: `${Math.max(0.5, (item.previous / max) * 100)}%` }}
                       />
                     </span>
                     <span className="text-muted-foreground tabular-nums">

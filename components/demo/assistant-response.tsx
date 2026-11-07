@@ -2,6 +2,7 @@
 
 import {
   Check,
+  CalendarDays,
   ChevronRight,
   CircleStop,
   FlaskConical,
@@ -21,7 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { TracerMark } from "@/components/workspace/tracer-logo";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import type { AssistantMessage } from "@/lib/demo/threads";
+import {
+  responseForMessage,
+  type AssistantMessage,
+} from "@/lib/demo/threads";
 import {
   experimentFromPlan,
   persistExperiment,
@@ -34,16 +38,22 @@ import type {
   ResponseBlock,
   SegmentsResponseBlock,
   SessionsResponseBlock,
+  TimelineResponseBlock,
 } from "@/lib/demo/responses";
 import type { DemoSession } from "@/lib/data/sessions";
-import { formatNumber, formatPercent } from "@/lib/format";
+import {
+  formatNumber,
+  formatPercent,
+  formatPointChange,
+} from "@/lib/format";
 import { writeStored } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 export function AssistantResponse({ message }: { message: AssistantMessage }) {
   const { setAssistantStatus, fillComposer } = useWorkspace();
   const reduceMotion = useReducedMotion();
-  const total = message.response.steps.length + 2;
+  const response = responseForMessage(message);
+  const total = response.steps.length + 2;
   const [progress, setProgress] = useState(
     message.status === "complete" || reduceMotion ? total : 0,
   );
@@ -73,8 +83,8 @@ export function AssistantResponse({ message }: { message: AssistantMessage }) {
     return () => window.clearInterval(timer);
   }, [message.id, message.status, reduceMotion, setAssistantStatus, total]);
 
-  const stepCount = Math.min(progress, message.response.steps.length);
-  const showText = progress > message.response.steps.length;
+  const stepCount = Math.min(progress, response.steps.length);
+  const showText = progress > response.steps.length;
   const showBlocks = progress >= total;
 
   return (
@@ -84,9 +94,9 @@ export function AssistantResponse({ message }: { message: AssistantMessage }) {
           <TracerMark className="size-4" />
         </span>
         <div className="grid min-w-0 flex-1 gap-2 pt-0.5">
-          {message.response.steps.length > 0 && (
+          {response.steps.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {message.response.steps.slice(0, stepCount).map((step) => (
+              {response.steps.slice(0, stepCount).map((step) => (
                 <motion.span
                   key={step.label}
                   initial={{ opacity: 0, y: 4 }}
@@ -103,7 +113,7 @@ export function AssistantResponse({ message }: { message: AssistantMessage }) {
 
           {showText && (
             <p className="max-w-prose text-sm leading-relaxed text-foreground">
-              <WordReveal text={message.response.text} animate={message.status === "running" && !reduceMotion} />
+              <WordReveal text={response.text} animate={message.status === "running" && !reduceMotion} />
             </p>
           )}
 
@@ -119,12 +129,12 @@ export function AssistantResponse({ message }: { message: AssistantMessage }) {
           animate={{ opacity: 1, y: 0 }}
           className="ml-0 grid gap-3 sm:ml-10"
         >
-          {message.response.blocks.map((block, index) => (
+          {response.blocks.map((block, index) => (
             <ResponseBlockView key={`${block.kind}-${index}`} block={block} />
           ))}
-          {message.response.suggestions.length > 0 && (
+          {response.suggestions.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {message.response.suggestions.map((suggestion) => (
+              {response.suggestions.map((suggestion) => (
                 <Button key={suggestion} size="sm" variant="outline" className="h-7 rounded-full bg-card/70 text-[11px]" onClick={() => fillComposer(suggestion)}>
                   {suggestion}<ChevronRight />
                 </Button>
@@ -153,6 +163,7 @@ function ResponseBlockView({ block }: { block: ResponseBlock }) {
   if (block.kind === "segments") return <SegmentsBlock block={block} />;
   if (block.kind === "sessions") return <SessionsBlock block={block} />;
   if (block.kind === "leads") return <LeadsBlock block={block} />;
+  if (block.kind === "timeline") return <TimelineBlock block={block} />;
   if (block.kind === "experiment-plan") return <ExperimentPlanBlock block={block} />;
   return <ExperimentResultBlock block={block} />;
 }
@@ -162,11 +173,32 @@ function BlockShell({ title, source, calculation, children }: { title: string; s
 }
 
 function FunnelBlock({ block }: { block: FunnelResponseBlock }) {
-  return <BlockShell title="Dónde se abre la fuga" source={block.source} calculation={block.calculation}><div className="grid gap-1.5">{block.stages.map((stage) => <div key={stage.id} className={cn("grid grid-cols-[1fr_auto] gap-2 rounded-lg px-2 py-1.5 text-xs", stage.id === "demo_scheduled" && "bg-tone-danger-soft text-tone-danger")}><span>{stage.label}</span><span className="font-medium tabular-nums">{formatNumber(stage.current)} · {formatPercent(stage.conversionCurrent)}</span></div>)}</div></BlockShell>;
+  return <BlockShell title="Dónde se abre la fuga" source={block.source} calculation={block.calculation}><div className="grid gap-1.5">{block.stages.map((stage) => <div key={stage.id} className={cn("grid gap-1 rounded-lg px-2 py-1.5 text-xs sm:grid-cols-[1fr_auto] sm:gap-2", stage.id === "demo_scheduled" && "bg-tone-danger-soft text-tone-danger")}><span>{stage.label}</span><span className="font-medium tabular-nums">{formatNumber(stage.previous)} → {formatNumber(stage.current)}{stage.id !== "site_visit" && ` · ${formatPercent(stage.conversionPrevious)} → ${formatPercent(stage.conversionCurrent)}`}</span></div>)}</div></BlockShell>;
 }
 
 function SegmentsBlock({ block }: { block: SegmentsResponseBlock }) {
-  return <BlockShell title="Conversión por dispositivo" source={block.source} calculation={block.calculation}><div className="grid gap-2 sm:grid-cols-3">{block.rows.map((row) => <div key={row.id} className={cn("rounded-lg bg-muted/55 p-2.5", row.changePoints <= -20 && "bg-tone-danger-soft")}><p className="text-xs font-medium">{row.label}</p><p className="mt-1 text-lg font-medium tabular-nums">{formatPercent(row.currentRate)}</p><p className={cn("text-[11px]", row.changePoints < 0 ? "text-tone-danger" : "text-tone-success")}>{row.changePoints > 0 ? "+" : ""}{row.changePoints} pp</p></div>)}</div></BlockShell>;
+  return <BlockShell title="Conversión por dispositivo" source={block.source} calculation={block.calculation}><div className="grid gap-2 sm:grid-cols-3">{block.rows.map((row) => <div key={row.id} className={cn("rounded-lg bg-muted/55 p-2.5", row.changePoints <= -20 && "bg-tone-danger-soft")}><p className="text-xs font-medium">{row.label}</p><p className="mt-1 text-lg font-medium tabular-nums">{formatPercent(row.currentRate)}</p><p className={cn("text-[11px]", row.changePoints < 0 ? "text-tone-danger" : "text-tone-success")}>{formatPointChange(row.changePoints)}</p></div>)}</div></BlockShell>;
+}
+
+function TimelineBlock({ block }: { block: TimelineResponseBlock }) {
+  const max = Math.max(...block.series.flatMap((item) => [item.ios, item.android]));
+  return (
+    <BlockShell title="Cambio reciente y caída diaria" source={block.source}>
+      <div className="mb-3 flex items-start gap-2 rounded-lg bg-tone-info-soft p-2.5 text-xs">
+        <CalendarDays className="mt-0.5 size-4 shrink-0 text-tone-info" />
+        <span><strong>{block.changelog.title}</strong><span className="block text-muted-foreground">{block.changelog.date} · hace {block.daysSinceDeploy} días</span></span>
+      </div>
+      <div className="grid grid-cols-[repeat(14,minmax(0,1fr))] items-end gap-1" aria-label="Demos diarias en iOS y Android">
+        {block.series.map((item) => (
+          <div key={item.date} className="grid h-20 grid-cols-2 items-end gap-px" title={`${item.date}: iOS ${item.ios}, Android ${item.android}`}>
+            <span className="min-h-px rounded-t bg-tone-danger" style={{ height: `${(item.ios / max) * 100}%` }} />
+            <span className="min-h-px rounded-t bg-tone-warning" style={{ height: `${(item.android / max) * 100}%` }} />
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex gap-3 text-[11px] text-muted-foreground"><span><i className="mr-1 inline-block size-2 rounded-sm bg-tone-danger" />iOS</span><span><i className="mr-1 inline-block size-2 rounded-sm bg-tone-warning" />Android</span></div>
+    </BlockShell>
+  );
 }
 
 function SessionsBlock({ block }: { block: SessionsResponseBlock }) {

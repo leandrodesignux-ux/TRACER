@@ -29,30 +29,39 @@ export type CrmLead = {
 };
 
 const COMPANY_ROOTS = [
-  "Mesa",
-  "Sazón",
-  "Patio",
-  "Origen",
-  "Brasa",
-  "Costa",
-  "Mercado",
-  "Barrio",
-  "Norte",
-  "Central",
+  "Don Rafa",
+  "La Caleta",
+  "Tacos del Norte",
+  "Patio Central",
+  "Casa Brasa",
+  "Mercado Sur",
+  "Canto del Mar",
+  "Barrio Origen",
+  "Sazón Andino",
+  "Cocina Mestiza",
+  "Mesa Norte",
+  "Ruta del Maíz",
 ] as const;
 const COMPANY_SUFFIXES = [
   "Restaurantes",
   "Cocinas",
-  "Grupo",
-  "Gastronomía",
-  "Locales",
+  "Grupo Gastronómico",
+  "Parrillas",
+  "Cantinas",
+  "Bistrós",
+  "Taquerías",
+  "Comedores",
+  "Terrazas",
+  "Fonditas",
 ] as const;
 const COUNTRIES: CountryId[] = ["chile", "mexico"];
 const CHANNELS: ChannelId[] = ["organico", "paid", "referidos", "directo"];
 const DEVICES: DeviceId[] = ["desktop", "ios", "android"];
 
-function companyName(index: number, random: () => number) {
-  return `${pickSeeded(COMPANY_ROOTS, random)} ${pickSeeded(COMPANY_SUFFIXES, random)} ${String(index + 1).padStart(3, "0")}`;
+function companyName(index: number) {
+  const root = COMPANY_ROOTS[index % COMPANY_ROOTS.length]!;
+  const suffix = COMPANY_SUFFIXES[Math.floor(index / COMPANY_ROOTS.length)]!;
+  return `${root} ${suffix}`;
 }
 
 export function createCrmLeads(asOf: Date = new Date()) {
@@ -63,7 +72,7 @@ export function createCrmLeads(asOf: Date = new Date()) {
     const locations = integerSeeded(21, 68, random);
     return {
       id: `lead-ios-${String(index + 1).padStart(3, "0")}`,
-      company: companyName(index, random),
+      company: companyName(index),
       locations,
       country: pickSeeded(COUNTRIES, random),
       device: "ios",
@@ -97,7 +106,7 @@ export function createCrmLeads(asOf: Date = new Date()) {
 
     return {
       id: `lead-${String(index + 1).padStart(3, "0")}`,
-      company: companyName(index, random),
+      company: companyName(index),
       locations,
       country: pickSeeded(COUNTRIES, random),
       device,
