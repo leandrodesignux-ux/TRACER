@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   estimateDuration,
+  getDemoExperimentOutcome,
   getChangelog,
   getCrmLeads,
   getExperiments,
@@ -133,6 +134,18 @@ describe("herramientas de datos demo", () => {
     expect(experiment.endedAt).toBe("2026-10-02");
     expect(experiment.confidenceInterval[0]).toBeLessThan(0);
     expect(experiment.confidenceInterval[1]).toBeGreaterThan(0);
+  });
+
+  it("simula un resultado positivo trazable para el estado futuro", () => {
+    const result = getDemoExperimentOutcome({
+      baselineRate: 0.6,
+      asOf: AS_OF,
+    });
+
+    expect(result.data.variantRate).toBeCloseTo(0.7);
+    expect(result.data.result).toBe("positive");
+    expect(result.data.confidenceInterval[0]).toBeGreaterThan(0);
+    expect(result.source.id).toBe("ga4");
   });
 
   it("expone query, rango y muestra en cada fuente", () => {

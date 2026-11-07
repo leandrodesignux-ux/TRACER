@@ -36,6 +36,16 @@ function readRaw(key: string): string | null {
   }
 }
 
+export function readStored<T>(key: string, fallback: T): T {
+  const raw = readRaw(key);
+  if (raw === null) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export function writeStored<T>(key: string, value: T) {
   try {
     window.localStorage.setItem(PREFIX + key, JSON.stringify(value));

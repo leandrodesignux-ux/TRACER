@@ -383,3 +383,34 @@ export function estimateDuration({
     },
   } satisfies ToolResult<unknown>;
 }
+
+export function getDemoExperimentOutcome({
+  baselineRate,
+  asOf = DEMO_AS_OF,
+}: {
+  baselineRate: number;
+  asOf?: Date;
+}) {
+  const range = rollingRange(asOf, 21);
+  const variantRate = Math.min(0.99, baselineRate + 0.1);
+  return {
+    data: {
+      controlRate: baselineRate,
+      variantRate,
+      confidenceInterval: [0.04, 0.16] as [number, number],
+      result: "positive" as const,
+      recommendation: "scale" as const,
+    },
+    source: source(
+      "ga4",
+      "experimento agenda_integrada · exposición y demo_scheduled",
+      range,
+      "Muestra completa de control y variante",
+    ),
+    calculation: {
+      label: "Efecto de la variante",
+      formula: "conversión variante − conversión control",
+      inputs: ["ga4"],
+    },
+  } satisfies ToolResult<unknown>;
+}
