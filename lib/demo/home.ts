@@ -71,63 +71,6 @@ export const SIDE_NAV: { label: string; href: string; icon: NavIcon }[] = [
   { label: "Fuentes", href: "/fuentes", icon: "sources" },
 ];
 
-/** Vistas que llegan en próximas fases. Se prerenderizan como Empty. */
-export const UPCOMING_VIEWS: Record<
-  string,
-  { title: string; description: string; phase: string }
-> = {
-  resumen: {
-    title: "Resumen",
-    description: "Las métricas clave de la semana, cada una con su fuente.",
-    phase: "Fase 2",
-  },
-  funnel: {
-    title: "Funnel",
-    description: "Las etapas del funnel con el paso que más cae marcado.",
-    phase: "Fase 2",
-  },
-  segmentos: {
-    title: "Segmentos",
-    description: "La conversión por dispositivo, canal y país.",
-    phase: "Fase 2",
-  },
-  sesiones: {
-    title: "Sesiones",
-    description: "Grabaciones de Clarity que respaldan cada hipótesis.",
-    phase: "Fase 2",
-  },
-  crm: {
-    title: "CRM",
-    description: "Los leads que se quedaron a mitad de camino.",
-    phase: "Fase 2",
-  },
-  analisis: {
-    title: "Análisis",
-    description: "Tus hilos de análisis y en qué quedó cada uno.",
-    phase: "Fase 3",
-  },
-  experimentos: {
-    title: "Experimentos",
-    description: "El tablero de experimentos: por diseñar, en curso, para leer y decidido.",
-    phase: "Fase 4",
-  },
-  informes: {
-    title: "Informes",
-    description: "Resúmenes listos para compartir con tu equipo.",
-    phase: "Fase 5",
-  },
-  fuentes: {
-    title: "Fuentes",
-    description: "El estado de GA4, Clarity y CRM, y las etapas del funnel.",
-    phase: "Fase 5",
-  },
-  alertas: {
-    title: "Alertas",
-    description: "Las caídas que Tracer detecta solo, listas para analizar.",
-    phase: "Fase 5",
-  },
-};
-
 /* ---------- Asistente ---------- */
 
 export const ASSISTANT = {

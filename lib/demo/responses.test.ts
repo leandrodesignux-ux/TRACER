@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { resolveDemoResponse } from "@/lib/demo/responses";
+import { SUGGESTIONS } from "@/lib/demo/home";
 
 const base = {
   period: "7d" as const,
@@ -8,7 +9,7 @@ const base = {
 };
 
 describe("resolveDemoResponse", () => {
-  it("explica la caída con funnel, segmentos, sesiones y CRM", () => {
+  it("explica la caída con cambio reciente, sesiones y CRM", () => {
     const response = resolveDemoResponse({
       prompt: "¿Por qué cayeron las demos esta semana?",
       period: base.period,
@@ -17,12 +18,39 @@ describe("resolveDemoResponse", () => {
 
     expect(response.intent).toBe("explain-drop");
     expect(response.blocks.map((block) => block.kind)).toEqual([
-      "funnel",
-      "segments",
+      "timeline",
       "sessions",
       "leads",
     ]);
     expect(response.steps).toHaveLength(4);
+    expect(response.text).toContain("v2.3");
+  });
+
+  it("devuelve una intención distinta para cada chip del inicio", () => {
+    const intents = SUGGESTIONS.map((suggestion) => resolveDemoResponse({
+      prompt: suggestion.prompt,
+      period: base.period,
+      enabledSources: [...base.enabledSources],
+    }).intent);
+
+    expect(new Set(intents).size).toBe(3);
+    expect(intents).toEqual(["find-leak", "explain-drop", "design-experiment"]);
+  });
+
+  it("todos los bloques declaran procedencia y los calculados, fórmula", () => {
+    const responses = SUGGESTIONS.map((suggestion) => resolveDemoResponse({
+      prompt: suggestion.prompt,
+      period: base.period,
+      enabledSources: [...base.enabledSources],
+    }));
+    const calculated = new Set(["funnel", "segments", "experiment-plan", "experiment-result"]);
+
+    for (const block of responses.flatMap((response) => response.blocks)) {
+      expect(block.source).toBeTruthy();
+      if (calculated.has(block.kind)) {
+        expect("calculation" in block && block.calculation).toBeTruthy();
+      }
+    }
   });
 
   it("responde el seguimiento de Android dentro del mismo modelo", () => {

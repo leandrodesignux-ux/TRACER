@@ -30,7 +30,7 @@ export type StoredExperiment = {
   weeklyTraffic: number;
   durationWeeks: number;
   totalSample: number;
-  source: DataSource;
+  source: DataSource | DataSource[];
   calculation?: CalculationDetails;
   result?: {
     controlRate: number;
@@ -39,7 +39,18 @@ export type StoredExperiment = {
     outcome: "inconclusive" | "positive" | "negative";
   };
   decision?: ExperimentDecision;
+  decidedAt?: string;
 };
+
+function tracerSource(): DataSource {
+  return {
+    id: "tracer",
+    label: "Tracer",
+    query: "experimento creado por la usuaria",
+    rango: "Estado actual del workspace",
+    muestra: "1 experimento",
+  };
+}
 
 export function getPreviousBoardExperiment(asOf?: Date): StoredExperiment {
   const previous = getExperiments({ status: "ready_to_read", asOf });
@@ -95,7 +106,7 @@ export function experimentFromPlan(
     weeklyTraffic: block.estimate.weeklyTraffic,
     durationWeeks: block.estimate.weeks,
     totalSample: block.estimate.totalSample,
-    source: block.source,
+    source: [tracerSource(), block.source],
     calculation: block.calculation,
   };
 }
@@ -116,7 +127,10 @@ export function advanceExperiment(experiment: StoredExperiment, asOf?: Date) {
   return {
     ...experiment,
     status: "ready_to_read" as const,
-    source: outcome.source,
+    source: [
+      ...(Array.isArray(experiment.source) ? experiment.source : [experiment.source]),
+      outcome.source,
+    ],
     calculation: outcome.calculation,
     result: {
       controlRate: outcome.data.controlRate,

@@ -44,6 +44,8 @@
   --color-source-ga4: var(--source-ga4);
   --color-source-clarity: var(--source-clarity);
   --color-source-crm: var(--source-crm);
+  --color-source-derived: var(--source-derived);
+  --color-source-tracer: var(--source-tracer);
   /* Tonos de estado (íconos de hallazgos) */
   --color-tone-danger: var(--tone-danger);
   --color-tone-danger-soft: var(--tone-danger-soft);
@@ -110,6 +112,8 @@
   --source-ga4: #9A5B00;         /* ámbar */
   --source-clarity: #7A4FD6;     /* violeta */
   --source-crm: #1A7A50;         /* verde */
+  --source-derived: #5F687A;     /* neutro */
+  --source-tracer: #4D74E6;      /* producto */
   /* Tonos de estado */
   --tone-danger: #D64545;
   --tone-danger-soft: #FDECEC;
@@ -167,6 +171,8 @@
   --source-ga4: #F5B754;
   --source-clarity: #B79CFF;
   --source-crm: #4CD4A0;
+  --source-derived: #AAB3C7;
+  --source-tracer: #7C9BFF;
   --tone-danger: #FF8A8A;
   --tone-danger-soft: rgb(255 138 138 / 0.14);
   --tone-warning: #F5B754;

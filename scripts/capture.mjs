@@ -41,7 +41,21 @@ const nextBin = path.join(process.cwd(), "node_modules", "next", "dist", "bin", 
 
 await mkdir(outputDir, { recursive: true });
 
-const server = spawn(process.execPath, [nextBin, "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
+async function runNext(args) {
+  await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [nextBin, ...args], {
+      cwd: process.cwd(),
+      env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1" },
+      stdio: "inherit",
+    });
+    child.on("error", reject);
+    child.on("exit", (code) => code === 0 ? resolve() : reject(new Error(`Next.js terminó con código ${code}.`)));
+  });
+}
+
+await runNext(["build"]);
+
+const server = spawn(process.execPath, [nextBin, "start", "--hostname", "127.0.0.1", "--port", String(port)], {
   cwd: process.cwd(),
   env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1" },
   stdio: ["ignore", "pipe", "pipe"],
@@ -74,7 +88,7 @@ try {
 
   for (const [viewportName, viewport] of viewports) {
     for (const [themeName, theme] of themes) {
-      const context = await browser.newContext({ viewport });
+      const context = await browser.newContext({ viewport, reducedMotion: "reduce" });
       await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
       const page = await context.newPage();
 
@@ -95,11 +109,14 @@ try {
             await page.getByRole("button", { name: /Hallazgos/ }).click();
           }
           const sourceButton = page.getByRole("button", {
-            name: "Ver fuente CRM",
+            name: /Ver (fuente CRM|cálculo Variación semanal)/,
           });
           if ((await sourceButton.count()) > 0) {
             await sourceButton.click();
-            await page.getByRole("dialog").last().waitFor();
+            const sourceDialog = page.getByRole("dialog").filter({
+              has: page.getByText("Fórmula", { exact: true }),
+            });
+            await sourceDialog.waitFor();
             await page.screenshot({
               path: path.join(
                 outputDir,
@@ -109,7 +126,36 @@ try {
               animations: "disabled",
             });
             await page.keyboard.press("Escape");
+            await sourceDialog.waitFor({ state: "hidden" });
           }
+
+          if (viewportName === "mobile") {
+            const findingsDialog = page.getByRole("dialog").filter({
+              has: page.getByRole("heading", { name: "Hallazgos" }),
+            });
+            await page.keyboard.press("Escape");
+            await findingsDialog.waitFor({ state: "hidden" });
+          }
+          await page.getByRole("button", { name: "Encontrar la fuga" }).click();
+          await page.getByRole("button", { name: "Enviar" }).click();
+          const leakTitle = page.getByText("Dónde se abre la fuga");
+          await leakTitle.waitFor();
+          await leakTitle.scrollIntoViewIfNeeded();
+          await page.screenshot({
+            path: path.join(outputDir, `${routeName}-fuga-${viewportName}-${themeName}.png`),
+            fullPage: true,
+            animations: "disabled",
+          });
+          await page.getByRole("textbox", { name: "Pregunta para el asistente" }).fill("¿Por qué cae en iOS?");
+          await page.getByRole("button", { name: "Enviar" }).click();
+          const causeTitle = page.getByText("Cambio reciente y caída diaria");
+          await causeTitle.waitFor();
+          await causeTitle.scrollIntoViewIfNeeded();
+          await page.screenshot({
+            path: path.join(outputDir, `${routeName}-causa-${viewportName}-${themeName}.png`),
+            fullPage: true,
+            animations: "disabled",
+          });
         }
       }
 

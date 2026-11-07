@@ -1,5 +1,9 @@
-import type { DemoResponse } from "@/lib/demo/responses";
+import {
+  resolveDemoResponse,
+  type DemoResponse,
+} from "@/lib/demo/responses";
 import type { SourceId } from "@/lib/data/types";
+import type { PeriodId } from "@/lib/data/types";
 
 export type UserMessage = {
   id: string;
@@ -10,7 +14,11 @@ export type UserMessage = {
 export type AssistantMessage = {
   id: string;
   role: "assistant";
-  response: DemoResponse;
+  intent: string;
+  prompt: string;
+  period: PeriodId;
+  sources: SourceId[];
+  asOf: string;
   status: "running" | "complete" | "stopped";
 };
 
@@ -29,4 +37,13 @@ export type AnalysisThread = {
 export function threadTitle(prompt: string) {
   const clean = prompt.trim().replace(/\s+/g, " ");
   return clean.length > 48 ? `${clean.slice(0, 47)}…` : clean;
+}
+
+export function responseForMessage(message: AssistantMessage): DemoResponse {
+  return resolveDemoResponse({
+    prompt: message.prompt,
+    period: message.period,
+    enabledSources: message.sources,
+    asOf: message.asOf ? new Date(message.asOf) : undefined,
+  });
 }

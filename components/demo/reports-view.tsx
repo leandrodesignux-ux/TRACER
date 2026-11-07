@@ -10,16 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/workspace/panel";
 import { ViewHeader } from "@/components/workspace/view-header";
 import { getWeeklyReport } from "@/lib/ai/tools";
-import { formatChange, formatNumber, formatPercent } from "@/lib/format";
+import type { StoredExperiment } from "@/lib/demo/experiment-state";
+import { formatChange, formatNumber, formatPercent, formatPointChange } from "@/lib/format";
 import { useDemoDate } from "@/lib/use-demo-date";
+import { useStored } from "@/lib/storage";
 
 export function ReportsView() {
   const asOf = useDemoDate();
   const report = useMemo(() => getWeeklyReport({ asOf }), [asOf]);
   const data = report.data;
+  const [experiments] = useStored<StoredExperiment[]>("saved-experiments", []);
+  const active = experiments.filter((item) => item.status === "running");
+  const decided = experiments.filter((item) => item.status === "decided");
 
   const exportReport = () => {
-    const markdown = [`# Informe semanal de Cuadra`, ``, `## Resumen`, `- Demos agendadas: ${data.demos} (${formatChange(data.demoChangePercent)})`, `- Conversión iOS: ${formatPercent(data.iosConversion)} (${data.iosChangePoints} pp)`, `- Sesiones con fricción: ${data.problematicSessions}`, `- Leads recuperables: ${data.recoverableLeads}`, ``, `## Recomendación`, `Corregir el calendario en Safari iOS, recontactar la cohorte afectada y continuar con el experimento de agenda integrada.`].join("\n");
+    const markdown = [`# Informe semanal de Cuadra`, ``, `## Resumen`, `- Demos agendadas: ${data.demos} (${formatChange(data.demoChangePercent)})`, `- Paso afectado: ${data.dropStep.from} → ${data.dropStep.to} (${data.dropStep.previous} → ${data.dropStep.current})`, `- Conversión iOS: ${formatPercent(data.iosConversion)} (${formatPointChange(data.iosChangePoints)})`, `- Sesiones con fricción: ${data.problematicSessions}`, `- Leads recuperables: ${data.recoverableLeads}`, ``, `## Causa probable`, `- ${data.cause.title} · ${data.cause.date}`, `- Fuente: GA4 + Clarity`, ``, `## Experimentos`, ...active.map((item) => `- En curso: ${item.name}`), ...decided.map((item) => `- Decidido: ${item.name} · ${item.decision}`), ``, `## Recomendación`, `Corregir el calendario en Safari iOS, recontactar la cohorte afectada y continuar con el experimento de agenda integrada.`].join("\n");
     const url = URL.createObjectURL(new Blob([markdown], { type: "text/markdown" }));
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = "informe-semanal-cuadra.md"; anchor.click(); URL.revokeObjectURL(url); toast.success("Informe exportado");
   };
@@ -36,12 +41,16 @@ export function ReportsView() {
 
           <div className="grid gap-3 py-4 sm:grid-cols-2">
             <ReportMetric icon={TrendingDown} label="Demos agendadas" value={formatNumber(data.demos)} detail={formatChange(data.demoChangePercent)} tone="danger" source={<SourceBadge source={data.metricSources.demos} calculation={report.calculation} />} />
-            <ReportMetric icon={TrendingDown} label="Conversión iOS" value={formatPercent(data.iosConversion)} detail={`${data.iosChangePoints} pp`} tone="danger" source={<SourceBadge source={data.metricSources.ios} />} />
+            <ReportMetric icon={TrendingDown} label="Conversión iOS" value={formatPercent(data.iosConversion)} detail={formatPointChange(data.iosChangePoints)} tone="danger" source={<SourceBadge source={data.metricSources.ios} calculation={data.metricCalculations.ios} />} />
             <ReportMetric icon={Lightbulb} label="Sesiones con fricción" value={formatNumber(data.problematicSessions)} detail="Safari iOS" source={<SourceBadge source={data.metricSources.sessions} />} />
             <ReportMetric icon={UsersRound} label="Leads recuperables" value={formatNumber(data.recoverableLeads)} detail="Buen encaje sin demo" source={<SourceBadge source={data.metricSources.leads} />} />
           </div>
 
           <section className="rounded-xl bg-tone-info-soft p-4"><h3 className="text-sm font-medium text-tone-info">Recomendación</h3><p className="mt-2 text-sm leading-relaxed">Corregir el calendario en Safari iOS, recontactar la cohorte afectada y continuar con el experimento de agenda integrada dentro del formulario.</p></section>
+
+          <section className="mt-3 rounded-xl border border-panel-outline p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-xs text-muted-foreground">Causa probable</p><p className="mt-1 text-sm font-medium">{data.cause.title}</p><p className="text-xs text-muted-foreground">Desplegado hace {data.cause.daysSinceDeploy} días · {data.cause.date}</p></div><SourceBadge source={data.metricSources.cause} /></div></section>
+
+          {(active.length > 0 || decided.length > 0) && <section className="mt-3 grid gap-2 rounded-xl border border-panel-outline p-3"><p className="text-xs text-muted-foreground">Experimentos del workspace</p>{[...active, ...decided].map((item) => <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 text-sm"><span>{item.name}</span><span className="flex items-center gap-1"><Badge variant="outline">{item.status === "running" ? "En curso" : "Decidido"}</Badge><SourceBadge source={item.source} /></span></div>)}</section>}
 
           {data.experiment && <section className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-panel-outline p-3"><div><p className="text-xs text-muted-foreground">Experimento para leer</p><p className="text-sm font-medium">{data.experiment.name}</p></div><Badge variant="outline" className="bg-tone-warning-soft text-tone-warning">No concluyente · iterar</Badge></section>}
         </div>

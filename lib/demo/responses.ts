@@ -1,6 +1,7 @@
 import {
   estimateDuration,
   getCrmLeads,
+  getDropTimeline,
   getExperiments,
   getFunnel,
   getSegments,
@@ -46,6 +47,14 @@ export type LeadsResponseBlock = {
   source: DataSource;
 };
 
+export type TimelineResponseBlock = {
+  kind: "timeline";
+  changelog: ReturnType<typeof getDropTimeline>["data"]["changelog"];
+  daysSinceDeploy: number;
+  series: ReturnType<typeof getDropTimeline>["data"]["series"];
+  source: Sources;
+};
+
 export type ExperimentPlanResponseBlock = {
   kind: "experiment-plan";
   name: string;
@@ -70,6 +79,7 @@ export type ResponseBlock =
   | SegmentsResponseBlock
   | SessionsResponseBlock
   | LeadsResponseBlock
+  | TimelineResponseBlock
   | ExperimentPlanResponseBlock
   | ExperimentResultResponseBlock;
 
@@ -102,16 +112,19 @@ export function resolveDemoResponse({
   prompt,
   period,
   enabledSources,
+  asOf,
 }: {
   prompt: string;
   period: PeriodId;
   enabledSources: SourceId[];
+  asOf?: Date;
 }): DemoResponse {
   const query = normalize(prompt);
-  const funnel = getFunnel({ period });
-  const segments = getSegments({ dimension: "device", period });
-  const sessions = getSessions({ problematicOnly: true, period });
-  const leads = getCrmLeads({ goodFitWithoutDemo: true, period: "28d" });
+  const funnel = getFunnel({ period, asOf });
+  const segments = getSegments({ dimension: "device", period, asOf });
+  const sessions = getSessions({ problematicOnly: true, period, asOf });
+  const leads = getCrmLeads({ goodFitWithoutDemo: true, period: "28d", asOf });
+  const timeline = getDropTimeline({ asOf });
   const responseId = `r-${prompt.length}-${query.slice(0, 16).replaceAll(" ", "-")}`;
   const canUse = (id: SourceId) => enabledSources.includes(id);
 
@@ -120,6 +133,7 @@ export function resolveDemoResponse({
       baselineRate: funnel.data.stages.find((stage) => stage.id === "demo_scheduled")!.conversionPrevious,
       minimumEffect: 0.08,
       weeklyTraffic: funnel.data.stages.find((stage) => stage.id === "demo_form_completed")!.current,
+      asOf,
     });
     return {
       id: responseId,
@@ -147,7 +161,7 @@ export function resolveDemoResponse({
   }
 
   if (query.includes("formulario en un solo paso") || query.includes("experimento anterior")) {
-    const experiments = getExperiments({ status: "ready_to_read" });
+    const experiments = getExperiments({ status: "ready_to_read", asOf });
     return {
       id: responseId,
       intent: "previous-experiment",
@@ -183,7 +197,65 @@ export function resolveDemoResponse({
     };
   }
 
-  if (query.includes("clarity") || query.includes("sesion") || query.includes("calendario") || query.includes("ios")) {
+  const asksWhere =
+    query.includes("fuga") ||
+    query.includes("en que paso") ||
+    query.includes("donde") ||
+    query.includes("perdiendo");
+  const asksWhy =
+    query.includes("por que") ||
+    query.includes("explica") ||
+    query.includes("cayeron") ||
+    query.includes("caida") ||
+    query.includes("calendario");
+
+  if (asksWhere) {
+    return {
+      id: responseId,
+      intent: "find-leak",
+      steps: [
+        { label: "Consultando el funnel semanal", source: sourceById(funnel.source, "ga4") },
+        { label: "Comparando dispositivos", source: sourceById(segments.source, "crm") },
+      ],
+      text: "La fuga está entre formulario completado y demo agendada. La comparación por dispositivo muestra que se concentra en iOS.",
+      blocks: [
+        { kind: "funnel", stages: funnel.data.stages, source: funnel.source, calculation: funnel.calculation },
+        { kind: "segments", rows: segments.data, source: segments.source, calculation: segments.calculation },
+      ],
+      suggestions: ["¿Por qué cae en iOS?", "¿Y en Android?"],
+      sourceIds: ["ga4", "crm"],
+    };
+  }
+
+  if (asksWhy) {
+    const entry = timeline.data.changelog;
+    return {
+      id: responseId,
+      intent: "explain-drop",
+      steps: [
+        { label: "Revisando cambios recientes", source: sourceById(timeline.source, "clarity") },
+        { label: "Comparando demos por dispositivo", source: sourceById(timeline.source, "ga4") },
+        { label: "Buscando evidencia de sesión", source: sessions.source },
+        { label: "Cruzando formularios con leads", source: leads.source },
+      ],
+      text: `La señal aparece después de ${entry.title}, desplegado hace ${timeline.data.daysSinceDeploy} días. La caída diaria se concentra en iOS; las sesiones muestran el calendario bloqueado y el CRM confirma la cohorte afectada.`,
+      blocks: [
+        {
+          kind: "timeline",
+          changelog: entry,
+          daysSinceDeploy: timeline.data.daysSinceDeploy,
+          series: timeline.data.series,
+          source: timeline.source,
+        },
+        { kind: "sessions", sessions: sessions.data, source: sessions.source },
+        { kind: "leads", leads: leads.data, source: leads.source },
+      ],
+      suggestions: ["¿Cuántos leads hay que recontactar?", "Diseña un experimento"],
+      sourceIds: ["ga4", "clarity", "crm"],
+    };
+  }
+
+  if (query.includes("clarity") || query.includes("sesion") || query.includes("ios")) {
     return {
       id: responseId,
       intent: "sessions-evidence",
@@ -195,7 +267,7 @@ export function resolveDemoResponse({
     };
   }
 
-  if (query.includes("fuga") || query.includes("caida") || query.includes("demos") || query.includes("conversion")) {
+  if (query.includes("demos") || query.includes("conversion")) {
     const blocks: ResponseBlock[] = [
       { kind: "funnel", stages: funnel.data.stages, source: funnel.source, calculation: funnel.calculation },
       { kind: "segments", rows: segments.data, source: segments.source, calculation: segments.calculation },

@@ -27,7 +27,7 @@ export function CrmView() {
   const [device, setDevice] = useState<DeviceFilter>("all");
   const [country, setCountry] = useState<CountryFilter>("all");
   const [followUpOnly, setFollowUpOnly] = useStored("crm-good-fit-filter", false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useStored("crm-search-query", "");
   const [selected, setSelected] = useState<string[]>([]);
   const asOf = useDemoDate();
   const result = useMemo(() => getCrmLeads({ device, country, goodFitWithoutDemo: followUpOnly, asOf }), [device, country, followUpOnly, asOf]);
