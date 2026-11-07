@@ -1,3 +1,4 @@
+import { createAlerts, type DemoAlert } from "@/lib/data/alerts";
 import { createChangelog } from "@/lib/data/changelog";
 import { createCrmLeads } from "@/lib/data/crm-leads";
 import {
@@ -412,5 +413,123 @@ export function getDemoExperimentOutcome({
       formula: "conversión variante − conversión control",
       inputs: ["ga4"],
     },
+  } satisfies ToolResult<unknown>;
+}
+
+export function getAlerts(
+  filters: CommonFilters & { severity?: DemoAlert["severity"] } = {},
+) {
+  const asOf = filters.asOf ?? DEMO_AS_OF;
+  const range = rollingRange(asOf, periodDays(filters.period ?? "7d"));
+  const alerts = createAlerts(asOf).filter(
+    (alert) =>
+      (!filters.severity || alert.severity === filters.severity) &&
+      alert.detectedAt.slice(0, 10) >= range.start &&
+      alert.detectedAt.slice(0, 10) <= range.end,
+  );
+  return {
+    data: alerts,
+    source: [
+      source(
+        "ga4",
+        "cambios semanales por evento y dispositivo",
+        range,
+        `${alerts.length} alertas activas`,
+      ),
+      source(
+        "crm",
+        "demos agendadas unidas por lead_id",
+        range,
+        "Cobertura completa de leads de demo",
+      ),
+    ],
+    calculation: {
+      label: "Cambio detectado",
+      formula: "(periodo actual − periodo anterior) ÷ periodo anterior",
+      inputs: ["ga4", "crm"],
+    },
+  } satisfies ToolResult<typeof alerts>;
+}
+
+export function getSourceHealth(filters: CommonFilters = {}) {
+  const asOf = filters.asOf ?? DEMO_AS_OF;
+  const range = rollingRange(asOf, periodDays(filters.period ?? "7d"));
+  const data = [
+    {
+      id: "ga4" as const,
+      status: "connected" as const,
+      lastSyncMinutes: 2,
+      mappedEvents: [
+        "site_visit",
+        "pricing_view",
+        "demo_form_started",
+        "demo_form_completed",
+      ],
+    },
+    {
+      id: "clarity" as const,
+      status: "connected" as const,
+      lastSyncMinutes: 5,
+      mappedEvents: ["page_view", "click", "rage_click", "exit"],
+    },
+    {
+      id: "crm" as const,
+      status: "connected" as const,
+      lastSyncMinutes: 7,
+      mappedEvents: [
+        "demo_scheduled",
+        "demo_completed",
+        "trial_active",
+        "paying_customer",
+      ],
+    },
+  ];
+  return {
+    data,
+    source: data.map((item) =>
+      source(
+        item.id,
+        "estado de conexión y eventos mapeados",
+        range,
+        `${item.mappedEvents.length} eventos mapeados`,
+      ),
+    ),
+  } satisfies ToolResult<typeof data>;
+}
+
+export function getWeeklyReport(filters: CommonFilters = {}) {
+  const asOf = filters.asOf ?? DEMO_AS_OF;
+  const funnel = getFunnel({ asOf, period: filters.period ?? "7d" });
+  const segments = getSegments({ asOf, period: filters.period ?? "7d" });
+  const sessions = getSessions({ asOf, period: filters.period ?? "7d", problematicOnly: true });
+  const leads = getCrmLeads({ asOf, period: "28d", goodFitWithoutDemo: true });
+  const experiment = getExperiments({ asOf, status: "ready_to_read" });
+  const ios = segments.data.find((row) => row.id === "ios")!;
+  const funnelSources = Array.isArray(funnel.source) ? funnel.source : [funnel.source];
+  const segmentSources = Array.isArray(segments.source) ? segments.source : [segments.source];
+  return {
+    data: {
+      range: funnel.data.currentRange,
+      demos: funnel.data.drop.current,
+      demoChangePercent: funnel.data.drop.percent,
+      iosConversion: ios.currentRate,
+      iosChangePoints: ios.changePoints,
+      problematicSessions: sessions.data.length,
+      recoverableLeads: leads.data.length,
+      experiment: experiment.data[0],
+      metricSources: {
+        demos: funnelSources.filter((item) => item.id === "crm"),
+        ios: segmentSources,
+        sessions: sessions.source,
+        leads: leads.source,
+      },
+    },
+    source: [
+      ...funnelSources,
+      ...segmentSources,
+      sessions.source,
+      leads.source,
+    ],
+    calculation: funnel.calculation,
   } satisfies ToolResult<unknown>;
 }

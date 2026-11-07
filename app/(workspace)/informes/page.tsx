@@ -1,6 +1,6 @@
-import { upcomingPage } from "@/components/workspace/upcoming-page";
+import type { Metadata } from "next";
 
-const { metadata, Page } = upcomingPage("informes");
+import { ReportsView } from "@/components/demo/reports-view";
 
-export { metadata };
-export default Page;
+export const metadata: Metadata = { title: "Informes · Tracer" };
+export default function ReportsPage() { return <ReportsView />; }

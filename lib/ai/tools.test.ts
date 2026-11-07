@@ -7,6 +7,9 @@ import {
   getCrmLeads,
   getExperiments,
   getFunnel,
+  getAlerts,
+  getSourceHealth,
+  getWeeklyReport,
   getSegments,
   getSessions,
 } from "@/lib/ai/tools";
@@ -158,5 +161,17 @@ describe("herramientas de datos demo", () => {
       expect(item.rango.length).toBeGreaterThan(0);
       expect(item.muestra.length).toBeGreaterThan(0);
     }
+  });
+
+  it("construye alertas, salud de fuentes e informe semanal trazables", () => {
+    const alerts = getAlerts({ asOf: AS_OF });
+    const health = getSourceHealth({ asOf: AS_OF });
+    const report = getWeeklyReport({ asOf: AS_OF });
+
+    expect(alerts.data).toHaveLength(3);
+    expect(health.data).toHaveLength(3);
+    expect(report.data.problematicSessions).toBe(3);
+    expect(report.data.recoverableLeads).toBe(42);
+    expect(report.source).toHaveLength(6);
   });
 });
